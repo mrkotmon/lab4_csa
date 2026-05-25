@@ -2,7 +2,7 @@
 
 Жизненный цикл инструкции (5 стадий, исполняются последовательно):
 
-    1. FETCH    — IR <- MEM[PC]; PC++         (1 такт + штраф памяти, см. ниже)
+    1. FETCH    — IR <- MEM32[PC]; PC <- PC + 4 (байтовые адреса)
     2. DECODE   — разобрать опкод и поля       (1 такт)
     3. EXECUTE  — посчитать в АЛУ              (1 такт; для VLD/VST — внутри
                                                 MEMORY)
@@ -22,8 +22,9 @@
   - Между инструкциями (после WRITEBACK) проверяем: разрешены ли прерывания,
     есть ли запрос — если оба «да», то делаем переход на адрес из
     INTERRUPT_VECTOR_ADDR.
-  - Реализация «реализма»: пока IN_HANDLER == True, новые прерывания
-    откладываются (но не теряются) до выполнения IRET.
+  - Реализация «реализма»: входное устройство имеет один 32-битный
+    регистр данных, без скрытой очереди. Пока непрочитанный символ занят,
+    следующий пришедший символ теряется с записью INPUT OVERRUN в журнал.
 
 Memory-mapped I/O:
   - чтение слова по адресу IO_INPUT_ADDR забирает текущее значение
@@ -47,6 +48,7 @@ from isa import (
     NUM_GP_REGS,
     NUM_VEC_REGS,
     VECTOR_LEN,
+    WORD_BYTES,
     WORD_MASK,
     Instruction,
     Opcode,
@@ -106,7 +108,9 @@ class InputSchedule:
 # =============================================================================
 @dataclass
 class DataPath:
-    memory: list[int] = field(default_factory=lambda: [0] * MEMORY_SIZE)
+    """Тракт данных с единой байтово-адресуемой памятью фон Неймана."""
+
+    memory: bytearray = field(default_factory=lambda: bytearray(MEMORY_SIZE))
 
     # Скалярные регистры; R0 ВСЕГДА должен оставаться 0.
     regs: list[int] = field(default_factory=lambda: [0] * NUM_GP_REGS)
@@ -116,47 +120,49 @@ class DataPath:
     )
     pc: int = 0
     ir: int = 0
-    # Регистр для сохранения PC при входе в прерывание (одно слово, без стека).
     saved_pc: int = 0
     saved_flags: int = 0
-    # FLAGS: Z — zero, N — negative (для условных переходов).  Здесь храним
-    # компактно: bit0 = Z, bit1 = N.
-    flags: int = 0
-    # Маска прерываний и состояние обработчика.
-    ie: bool = False  # interrupt enable
+    flags: int = 0  # bit0 = Z, bit1 = N
+    ie: bool = False
     in_handler: bool = False
 
-    # ---- доступ к памяти и регистрам (с защитой R0) ------------------------
+    _input_port: int = 0
+    _on_output: Callable[[int], None] = field(default=lambda _code: None, repr=False)
+
     def read_reg(self, idx: int) -> int:
         if idx == 0:
             return 0
         return self.regs[idx]
 
     def write_reg(self, idx: int, value: int) -> None:
-        if idx == 0:
-            return  # R0 hardwired to zero
-        self.regs[idx] = clip_word(value)
+        if idx != 0:
+            self.regs[idx] = clip_word(value)
+
+    @staticmethod
+    def _require_word_address(addr: int) -> None:
+        if addr % WORD_BYTES != 0:
+            raise RuntimeError(f"невыровненный адрес 32-битного слова: {addr}")
+        if not 0 <= addr <= MEMORY_SIZE - WORD_BYTES:
+            raise RuntimeError(f"адрес {addr} вне памяти")
+
+    def load_word(self, addr: int, value: int) -> None:
+        """Загрузить слово образа в ОЗУ, минуя побочный эффект I/O."""
+        self._require_word_address(addr)
+        unsigned = to_unsigned(clip_word(value), 32)
+        self.memory[addr : addr + WORD_BYTES] = unsigned.to_bytes(WORD_BYTES, "little")
 
     def read_mem(self, addr: int) -> int:
-        if not 0 <= addr < MEMORY_SIZE:
-            raise RuntimeError(f"read_mem: адрес {addr} вне памяти")
-        # memory-mapped IO для ввода — отдаём текущий ожидающий символ,
-        # этим занимается уже сам процессор-метод (через input_port).
+        self._require_word_address(addr)
         if addr == IO_INPUT_ADDR:
             return self._input_port
-        return self.memory[addr]
+        return int.from_bytes(self.memory[addr : addr + WORD_BYTES], "little")
 
     def write_mem(self, addr: int, value: int) -> None:
-        if not 0 <= addr < MEMORY_SIZE:
-            raise RuntimeError(f"write_mem: адрес {addr} вне памяти")
+        self._require_word_address(addr)
         if addr == IO_OUTPUT_ADDR:
             self._on_output(value & 0xFFFF)
             return
-        self.memory[addr] = to_unsigned(clip_word(value), 32)
-
-    # Поля, которые «подключает» процессор для I/O — заполняются извне.
-    _input_port: int = 0
-    _on_output: Callable[[int], None] = field(default=lambda _code: None, repr=False)
+        self.load_word(addr, value)
 
 
 # =============================================================================
@@ -185,7 +191,7 @@ class Processor:
     ) -> None:
         self.dp = DataPath()
         for addr, word in memory_image.items():
-            self.dp.memory[addr] = word & WORD_MASK
+            self.dp.load_word(addr, word & WORD_MASK)
         self.dp.pc = entry_point
         # сценарий ввода
         self.input_schedule = input_schedule or InputSchedule([])
@@ -201,10 +207,10 @@ class Processor:
         # состояние FSM
         self.stage: Stage = Stage.FETCH
         self.cur: Instruction | None = None
-        # «прерывание ожидает обработки»
+        # Входное устройство: однословный регистр данных и один запрос IRQ.
         self._irq_pending: bool = False
-        # время появления текущего символа в порту ввода
         self._input_active_char: str | None = None
+        self.input_overrun_count: int = 0
         # журнал
         self.log_stream = log_stream
         # счётчик активных стадий для VLD/VST (имитация многотактовой памяти)
@@ -231,9 +237,17 @@ class Processor:
 
     # ------------- запрос прерывания --------------------------------------
     def _check_input_event(self) -> None:
-        """Если на текущем такте «созрело» новое прерывание ввода — взвести его."""
-        if self.input_schedule.has_pending(self.tick) and self._input_active_char is None:
+        """Принять все события текущего такта в однословный аппаратный порт.
+
+        Порт не является очередью: если предыдущее значение ещё не считано,
+        вновь пришедший символ теряется, а журнал фиксирует переполнение.
+        """
+        while self.input_schedule.has_pending(self.tick):
             _, ch = self.input_schedule.pop()
+            if self._input_active_char is not None:
+                self.input_overrun_count += 1
+                self._log(f"INPUT OVERRUN: символ '{_print_char(ch)}' потерян; регистр ввода занят")
+                continue
             self._input_active_char = ch
             self.dp._input_port = ord(ch)
             self._irq_pending = True
@@ -246,6 +260,7 @@ class Processor:
             self._tick_once()
         if self.stage != Stage.HALTED:
             self._log("STOP: достигнут лимит тактов")
+            raise RuntimeError("достигнут лимит тактов до выполнения HLT")
 
     def _tick_once(self) -> None:
         """Один такт."""
@@ -272,11 +287,11 @@ class Processor:
 
     # ------------------- отдельные стадии -------------------------------
     def _stage_fetch(self) -> None:
-        word = self.dp.memory[self.dp.pc]
+        word = self.dp.read_mem(self.dp.pc)
         self.dp.ir = word
         self.cur = decode(word)
         self._log(f"FETCH word=0x{word:08X} ({mnemonic(self.cur)})")
-        self.dp.pc += 1
+        self.dp.pc += WORD_BYTES
         self.stage = Stage.DECODE
 
     def _stage_decode(self) -> None:
@@ -308,7 +323,7 @@ class Processor:
         elif op == Opcode.DIV:
             a, b = dp.read_reg(instr.rs1), dp.read_reg(instr.rs2)
             if b == 0:
-                raise RuntimeError(f"DIV by zero на PC={dp.pc - 1}")
+                raise RuntimeError(f"DIV by zero на PC={dp.pc - WORD_BYTES}")
             # «обычное» целочисленное деление к нулю
             res = int(a / b) if (a < 0) ^ (b < 0) and a % b != 0 else a // b
             self._alu_result = clip_word(res)
@@ -316,7 +331,7 @@ class Processor:
         elif op == Opcode.MOD:
             a, b = dp.read_reg(instr.rs1), dp.read_reg(instr.rs2)
             if b == 0:
-                raise RuntimeError(f"MOD by zero на PC={dp.pc - 1}")
+                raise RuntimeError(f"MOD by zero на PC={dp.pc - WORD_BYTES}")
             self._alu_result = clip_word(
                 a - (int(a / b) if (a < 0) ^ (b < 0) and a % b != 0 else a // b) * b
             )
@@ -479,10 +494,10 @@ class Processor:
         elif op == Opcode.VLD:
             # многотактовая память: читаем по одному слову за такт
             idx = VECTOR_LEN - self._mem_remaining_words
-            value = dp.read_mem(self._effective_addr + idx)
+            value = dp.read_mem(self._effective_addr + idx * WORD_BYTES)
             dp.vregs[instr.rd][idx] = to_signed(value, 32)
             self._log(
-                f"MEMORY VLD[{idx}] addr={self._effective_addr + idx} -> "
+                f"MEMORY VLD[{idx}] addr={self._effective_addr + idx * WORD_BYTES} -> "
                 f"V{instr.rd}[{idx}]={dp.vregs[instr.rd][idx]}"
             )
             self._mem_remaining_words -= 1
@@ -491,9 +506,10 @@ class Processor:
         elif op == Opcode.VST:
             idx = VECTOR_LEN - self._mem_remaining_words
             value = dp.vregs[instr.rd][idx]
-            dp.write_mem(self._effective_addr + idx, value)
+            dp.write_mem(self._effective_addr + idx * WORD_BYTES, value)
             self._log(
-                f"MEMORY VST[{idx}] V{instr.rd}[{idx}]={value} -> addr={self._effective_addr + idx}"
+                f"MEMORY VST[{idx}] V{instr.rd}[{idx}]={value} -> "
+                f"addr={self._effective_addr + idx * WORD_BYTES}"
             )
             self._mem_remaining_words -= 1
             if self._mem_remaining_words == 0:
@@ -538,7 +554,7 @@ class Processor:
         self._check_input_event()
         dp = self.dp
         if self._irq_pending and dp.ie and not dp.in_handler:
-            handler_addr = dp.memory[INTERRUPT_VECTOR_ADDR]
+            handler_addr = to_signed(dp.read_mem(INTERRUPT_VECTOR_ADDR), 32)
             dp.saved_pc = dp.pc
             dp.saved_flags = dp.flags
             dp.in_handler = True
@@ -547,10 +563,8 @@ class Processor:
                 f"по адресу {handler_addr} (saved_pc={dp.saved_pc})"
             )
             dp.pc = handler_addr
-            # запрос сбрасывается ТОЛЬКО когда символ прочитан из порта
-            # (это сделано в _consume_input).  То есть пока обработчик
-            # не прочитает порт, повторный вход не случится, потому что
-            # IN_HANDLER=True.
+            # Запрос сбрасывается только чтением порта; до этого порт занят.
+            # Новое событие в этот момент приведёт к INPUT OVERRUN, а не к очереди.
             self.stage = Stage.FETCH
             return
         # Никакого прерывания не случилось — стандартная пауза между инструкциями.
@@ -573,9 +587,8 @@ class Processor:
             )
             self._input_active_char = None
             self._irq_pending = False
-            # ВАЖНО: после прочтения сразу проверим, не «созрело» ли следующее
-            # событие — оно может ждать с того же или более раннего такта.
-            self._check_input_event()
+            # Уже пришедшие события никогда не ожидали здесь: при занятом
+            # порте они были потеряны с INPUT OVERRUN.
 
 
 def _print_char(ch: str) -> str:

@@ -1,0 +1,42 @@
+[tick=    0] [PC=   4] [stage=FETCH    ]   FETCH word=0xA0000000 (EI)
+[tick=    1] [PC=   8] [stage=DECODE   ]   DECODE EI
+[tick=    2] [PC=   8] [stage=EXECUTE  ]     interrupts ENABLED
+[tick=    2] [PC=   8] [stage=EXECUTE  ]   EXECUTE EI
+[tick=    4] [PC=   8] [stage=FETCH    ]   FETCH word=0x40000008 (JMP 8)
+[tick=    5] [PC=  12] [stage=DECODE   ]   DECODE JMP 8
+[tick=    6] [PC=   8] [stage=EXECUTE  ]   EXECUTE JMP 8
+[tick=    8] [PC=   8] [stage=FETCH    ]   FETCH word=0x40000008 (JMP 8)
+[tick=    9] [PC=  12] [stage=DECODE   ]   DECODE JMP 8
+[tick=   10] [PC=   8] [stage=EXECUTE  ]   EXECUTE JMP 8
+[tick=   12] [PC=   8] [stage=FETCH    ]   FETCH word=0x40000008 (JMP 8)
+[tick=   13] [PC=  12] [stage=DECODE   ]   DECODE JMP 8
+[tick=   14] [PC=   8] [stage=EXECUTE  ]   EXECUTE JMP 8
+[tick=   16] [PC=   8] [stage=FETCH    ]   FETCH word=0x40000008 (JMP 8)
+[tick=   17] [PC=  12] [stage=DECODE   ]   DECODE JMP 8
+[tick=   18] [PC=   8] [stage=EXECUTE  ]   EXECUTE JMP 8
+[tick=   20] [PC=   8] [stage=FETCH    ]   FETCH word=0x40000008 (JMP 8)
+[tick=   21] [PC=  12] [stage=DECODE   ]   DECODE JMP 8
+[tick=   22] [PC=   8] [stage=EXECUTE  ]   EXECUTE JMP 8
+[tick=   24] [PC=   8] [stage=FETCH    ]   FETCH word=0x40000008 (JMP 8)
+[tick=   25] [PC=  12] [stage=DECODE   ]   DECODE JMP 8
+[tick=   26] [PC=   8] [stage=EXECUTE  ]   EXECUTE JMP 8
+[tick=   28] [PC=   8] [stage=FETCH    ]   FETCH word=0x40000008 (JMP 8)
+[tick=   29] [PC=  12] [stage=DECODE   ]   DECODE JMP 8
+[tick=   30] [PC=  12] [stage=EXECUTE  ]   IRQ: появился символ '\0' (код 0)
+[tick=   30] [PC=  12] [stage=EXECUTE  ]   INPUT OVERRUN: символ 'X' потерян; регистр ввода занят
+[tick=   30] [PC=   8] [stage=EXECUTE  ]   EXECUTE JMP 8
+[tick=   31] [PC=   8] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, IE=1, IH=0 -> переход в обработчик по адресу 12 (saved_pc=8)
+[tick=   32] [PC=  12] [stage=FETCH    ] * FETCH word=0x27101FF8 (LI R1, 8184)
+[tick=   33] [PC=  16] [stage=DECODE   ] * DECODE LI R1, 8184
+[tick=   34] [PC=  16] [stage=EXECUTE  ] * EXECUTE LI R1, 8184
+[tick=   35] [PC=  16] [stage=WRITEBACK] * WRITEBACK R1 <- 8184
+[tick=   36] [PC=  16] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=   37] [PC=  16] [stage=FETCH    ] * FETCH word=0x25210000 (LW R2, 0(R1))
+[tick=   38] [PC=  20] [stage=DECODE   ] * DECODE LW R2, 0(R1)
+[tick=   39] [PC=  20] [stage=EXECUTE  ] * EXECUTE LW R2, 0(R1)
+[tick=   40] [PC=  20] [stage=MEMORY   ] * MEMORY LW addr=8184 -> 0
+[tick=   40] [PC=  20] [stage=MEMORY   ] *   CONSUME: прочитан символ '\0' из порта ввода
+[tick=   41] [PC=  20] [stage=WRITEBACK] * WRITEBACK R2 <- 0
+[tick=   43] [PC=  20] [stage=FETCH    ] * FETCH word=0xA3000000 (HLT)
+[tick=   44] [PC=  24] [stage=DECODE   ] * DECODE HLT
+[tick=   45] [PC=  24] [stage=HALTED   ] * HALT

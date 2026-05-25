@@ -7,6 +7,7 @@
   - директива `.word <value>[, value...]` — литералы в памяти данных;
   - директива `.string "..."` — Pascal-string (pstr): первое слово — длина,
     далее — по одному символу на машинное слово;
+  - условная компиляция: `.if CONST` / `.else` / `.endif`;
   - макросы: `.macro name arg1 arg2 ... / .endm`;
   - константы: `.equ NAME value` (текстовая замена при разборе).
 
@@ -19,10 +20,10 @@
 
 Выходные форматы:
   - бинарный файл `.bin` — последовательность 32-битных слов little-endian;
-    каждое слово предваряется 16-битным адресом, по которому его положить
+    каждое слово предваряется 32-битным БАЙТОВЫМ адресом, по которому его положить
     (это позволяет хранить «дырки» в памяти из-за `.org`).
-    Формат записи: `<u16 addr> <u32 word>` повторяется N раз.
-    В начале файла — заголовок `<u16 entry_point>`.
+    Формат записи: `<u32 addr> <u32 word>` повторяется N раз.
+    В начале файла — заголовок `<u32 entry_point>`.
   - отладочный текстовый дамп `.lst` со строками вида
     `<address> - <HEXCODE> - <mnemonic>` (требование варианта `binary`).
 """
@@ -42,6 +43,7 @@ from isa import (
     PROGRAM_START_DEFAULT,
     R_TYPE_OPCODES,
     S_TYPE_OPCODES,
+    WORD_BYTES,
     Opcode,
     clip_word,
     decode,
@@ -102,30 +104,81 @@ class Macro:
     body: list[Line]
 
 
+def _condition_is_true(expr: str, constants: dict[str, str], src_line_no: int) -> bool:
+    """Вычислить простое условие препроцессора после подстановки `.equ`.
+
+    Минимальный ASM-язык поддерживает `.if NAME`, `.if 0`, `.if 1` и
+    отрицание `.if !NAME`. Этого достаточно для условной сборки вариантов
+    программы без добавления языка выражений высокого уровня.
+    """
+    replaced = _replace_tokens(expr.strip(), constants).strip()
+    negate = replaced.startswith("!")
+    if negate:
+        replaced = replaced[1:].strip()
+    try:
+        result = _parse_int(replaced) != 0
+    except ValueError as exc:
+        raise SyntaxError(
+            f"строка {src_line_no}: условие .if должно быть константой или числом, "
+            f"получено {expr!r}"
+        ) from exc
+    return not result if negate else result
+
+
 def _preprocess(lines: list[Line]) -> list[Line]:
-    """Раскрыть `.equ` и макросы.
+    """Раскрыть `.equ`, `.if/.else/.endif` и пользовательские макросы.
 
-    `.equ NAME value` — везде далее `NAME` (как отдельный токен) заменяется на `value`.
-    `.macro N a b / ... / .endm` — определение макроса.  При вызове `N x y`
-    тело подставляется с заменой формальных параметров.
-
-    Никаких рекурсивных макросов: чтобы не плодить сложность.
+    `.equ NAME value` объявляет константу для следующих строк. Условная
+    компиляция выбирает ровно одну ветку на этапе сборки. Макросы раскрываются
+    текстовой подстановкой; рекурсивные макросы намеренно не поддерживаются.
     """
     constants: dict[str, str] = {}
     macros: dict[str, Macro] = {}
     out: list[Line] = []
+    active: list[bool] = [True]
+    branch_taken: list[bool] = []
 
     i = 0
     while i < len(lines):
         line = lines[i]
-        # ---- .equ ----
-        m = _RE_EQU.match(line.text)
-        if m:
-            constants[m.group(1)] = m.group(2).strip()
+        text = line.text
+        lower = text.lower()
+
+        if lower.startswith(".if "):
+            parent_active = active[-1]
+            take = parent_active and _condition_is_true(
+                text.split(None, 1)[1], constants, line.src_line_no
+            )
+            active.append(take)
+            branch_taken.append(take)
             i += 1
             continue
-        # ---- .macro ----
-        m = _RE_MACRO_START.match(line.text)
+        if lower == ".else":
+            if len(active) == 1:
+                raise SyntaxError(f"строка {line.src_line_no}: .else без .if")
+            parent_active = active[-2]
+            active[-1] = parent_active and not branch_taken[-1]
+            branch_taken[-1] = True
+            i += 1
+            continue
+        if lower == ".endif":
+            if len(active) == 1:
+                raise SyntaxError(f"строка {line.src_line_no}: .endif без .if")
+            active.pop()
+            branch_taken.pop()
+            i += 1
+            continue
+        if not active[-1]:
+            i += 1
+            continue
+
+        m = _RE_EQU.match(text)
+        if m:
+            constants[m.group(1)] = _replace_tokens(m.group(2).strip(), constants)
+            i += 1
+            continue
+
+        m = _RE_MACRO_START.match(text)
         if m:
             name = m.group(1)
             params = m.group(2).split()
@@ -139,25 +192,29 @@ def _preprocess(lines: list[Line]) -> list[Line]:
             macros[name] = Macro(name=name, params=params, body=body)
             i += 1
             continue
-        # ---- проверим — может это вызов макроса? ----
-        first_tok = line.text.split()[0]
+
+        first_tok = text.split()[0]
         if first_tok in macros:
             macro = macros[first_tok]
-            args = _split_operands(line.text[len(first_tok) :].strip())
+            args = _split_operands(text[len(first_tok) :].strip())
             if len(args) != len(macro.params):
                 raise SyntaxError(
                     f"строка {line.src_line_no}: макрос {macro.name} ждёт "
                     f"{len(macro.params)} аргумент(ов), получено {len(args)}"
                 )
-            sub: dict[str, str] = dict(zip(macro.params, args, strict=False))
+            substitution = dict(zip(macro.params, args, strict=False))
             for body_line in macro.body:
-                expanded = _replace_tokens(body_line.text, sub)
+                expanded = _replace_tokens(body_line.text, substitution)
+                expanded = _replace_tokens(expanded, constants)
                 out.append(Line(text=expanded, src_line_no=line.src_line_no))
             i += 1
             continue
-        # ---- обычная строка: подставить константы ----
-        out.append(Line(text=_replace_tokens(line.text, constants), src_line_no=line.src_line_no))
+
+        out.append(Line(text=_replace_tokens(text, constants), src_line_no=line.src_line_no))
         i += 1
+
+    if len(active) != 1:
+        raise SyntaxError("условный блок .if не закрыт директивой .endif")
     return out
 
 
@@ -349,8 +406,8 @@ class Translator:
         .org/.equ (они уже учтены).
         """
         addressed: list[tuple[int, Line]] = []
-        # По умолчанию начинаем с PROGRAM_START_DEFAULT.
-        # Адрес 0 зарезервирован под вектор прерывания (см. ISA).
+        # По умолчанию начинаем с PROGRAM_START_DEFAULT (байтовый адрес 4).
+        # Адрес 0..3 зарезервирован под 32-битный вектор прерывания.
         current_addr = PROGRAM_START_DEFAULT
         for line in lines:
             text = line.text
@@ -367,9 +424,14 @@ class Translator:
             if text.lower().startswith(".org"):
                 rest = text.split(None, 1)[1].strip()
                 current_addr = _parse_int(rest)
-                if not 0 <= current_addr < MEMORY_SIZE:
+                if not 0 <= current_addr <= MEMORY_SIZE - WORD_BYTES:
                     raise SyntaxError(
                         f"строка {line.src_line_no}: .org {current_addr} вне диапазона памяти"
+                    )
+                if current_addr % WORD_BYTES != 0:
+                    raise SyntaxError(
+                        f"строка {line.src_line_no}: .org {current_addr} не выровнен на слово "
+                        f"({WORD_BYTES} байта)"
                     )
                 continue
 
@@ -400,7 +462,7 @@ class Translator:
                         Line(text=".word " + ",".join(values), src_line_no=line.src_line_no),
                     )
                 )
-                current_addr += len(values)
+                current_addr += len(values) * WORD_BYTES
                 continue
             if text.lower().startswith(".string"):
                 # извлекаем содержимое в кавычках
@@ -416,14 +478,14 @@ class Translator:
                         Line(text=f'.string "{m.group(1)}"', src_line_no=line.src_line_no),
                     )
                 )
-                current_addr += 1 + length  # 1 слово на длину + по слову на символ
+                current_addr += (1 + length) * WORD_BYTES  # длина и символы — 32-битные слова
                 continue
 
             # ---- обычная инструкция: занимает ровно 1 слово (RISC, fixed length) ----
             addressed.append((current_addr, Line(text=text, src_line_no=line.src_line_no)))
-            current_addr += 1
+            current_addr += WORD_BYTES
 
-            if current_addr >= MEMORY_SIZE:
+            if current_addr > MEMORY_SIZE:
                 raise SyntaxError(f"строка {line.src_line_no}: программа не помещается в память")
 
         return addressed
@@ -439,8 +501,9 @@ class Translator:
                 values = _split_operands(rest)
                 for i, v in enumerate(values):
                     word = clip_word(self._resolve_value(v, line.src_line_no))
-                    self.memory_image[addr + i] = to_unsigned(word, 32)
-                    self.debug_dump.append((addr + i, to_unsigned(word, 32), f".word {v}", text))
+                    word_addr = addr + i * WORD_BYTES
+                    self.memory_image[word_addr] = to_unsigned(word, 32)
+                    self.debug_dump.append((word_addr, to_unsigned(word, 32), f".word {v}", text))
                 continue
             if text.lower().startswith(".string"):
                 m = re.match(r'^\.string\s+"(.*)"\s*$', text)
@@ -454,8 +517,9 @@ class Translator:
                 # 2) по одному коду на слово
                 for i, ch in enumerate(body, start=1):
                     code = ord(ch)
-                    self.memory_image[addr + i] = code
-                    self.debug_dump.append((addr + i, code, f".string '{_escape_char(ch)}'", text))
+                    word_addr = addr + i * WORD_BYTES
+                    self.memory_image[word_addr] = code
+                    self.debug_dump.append((word_addr, code, f".string '{_escape_char(ch)}'", text))
                 continue
             # обычная инструкция
             word, mnem = self._encode_instruction(text, addr, line.src_line_no)
@@ -527,8 +591,8 @@ class Translator:
                 rd = _parse_reg(operands[0])
                 rs1 = _parse_reg(operands[1])
                 target = self._resolve_value(operands[2], src_line_no)
-                # branch — относительный (PC-relative).  Считаем смещение в словах.
-                offset = target - (addr + 1)
+                # branch — относительный (PC-relative), адреса и смещение в байтах.
+                offset = target - (addr + WORD_BYTES)
                 offset = _check_imm(offset, IMM16_BITS, op_name, src_line_no)
                 word = encode(op, rd=rd, rs1=rs1, imm=offset)
                 return word, mnemonic(decode(word))
@@ -640,12 +704,12 @@ class Translator:
         # иначе оставим PROGRAM_START_DEFAULT
 
     # ---------- Сериализация бинарного файла --------------------------------
-    # Формат: u16 entry_point ; затем последовательность (u16 addr ; u32 word).
+    # Формат: u32 entry_point ; затем последовательность (u32 byte_addr ; u32 word).
     def to_binary(self) -> bytes:
         out = bytearray()
-        out += struct.pack("<H", self.entry_point)
+        out += struct.pack("<I", self.entry_point)
         for addr in sorted(self.memory_image):
-            out += struct.pack("<HI", addr, self.memory_image[addr])
+            out += struct.pack("<II", addr, self.memory_image[addr])
         return bytes(out)
 
     def to_debug_text(self) -> str:
@@ -733,15 +797,17 @@ def _decode_escapes(s: str) -> str:
 # =============================================================================
 def load_binary(data: bytes) -> tuple[int, dict[int, int]]:
     """Прочитать бинарный файл, вернуть (entry_point, memory_image)."""
-    if len(data) < 2:
+    if len(data) < 4:
         raise ValueError("файл слишком короткий")
-    entry = struct.unpack_from("<H", data, 0)[0]
-    pos = 2
+    entry = struct.unpack_from("<I", data, 0)[0]
+    pos = 4
     memory: dict[int, int] = {}
-    while pos + 6 <= len(data):
-        addr, word = struct.unpack_from("<HI", data, pos)
+    while pos + 8 <= len(data):
+        addr, word = struct.unpack_from("<II", data, pos)
+        if addr % WORD_BYTES != 0 or addr > MEMORY_SIZE - WORD_BYTES:
+            raise ValueError(f"некорректный байтовый адрес слова: {addr}")
         memory[addr] = word
-        pos += 6
+        pos += 8
     if pos != len(data):
         raise ValueError("в файле остались лишние байты")
     return entry, memory
@@ -773,7 +839,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.listing:
         with open(args.listing, "w", encoding="utf-8") as f:
             f.write(tr.to_debug_text())
-    print(f"OK: {len(tr.memory_image)} слов записано в {args.output}")
+    print(f"OK: {len(tr.memory_image)} слов записано в {args.output} (адреса байтовые)")
     return 0
 
 

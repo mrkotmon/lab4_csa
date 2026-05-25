@@ -1,4 +1,5 @@
 {
-  "ticks": 137,
-  "instructions": 29
+  "ticks": 592,
+  "instructions": 140,
+  "input_overruns": 0
 }
