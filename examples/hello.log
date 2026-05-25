@@ -1,0 +1,340 @@
+[tick=    0] [PC=   1] [stage=FETCH    ]   FETCH word=0x22100064 (LI R1, 100)
+[tick=    1] [PC=   2] [stage=DECODE   ]   DECODE LI R1, 100
+[tick=    2] [PC=   2] [stage=EXECUTE  ]   EXECUTE LI R1, 100
+[tick=    3] [PC=   2] [stage=WRITEBACK]   WRITEBACK R1 <- 100
+[tick=    5] [PC=   2] [stage=FETCH    ]   FETCH word=0x20210000 (LW R2, 0(R1))
+[tick=    6] [PC=   3] [stage=DECODE   ]   DECODE LW R2, 0(R1)
+[tick=    7] [PC=   3] [stage=EXECUTE  ]   EXECUTE LW R2, 0(R1)
+[tick=    8] [PC=   3] [stage=MEMORY   ]   MEMORY LW addr=100 -> 13
+[tick=    9] [PC=   3] [stage=WRITEBACK]   WRITEBACK R2 <- 13
+[tick=   11] [PC=   3] [stage=FETCH    ]   FETCH word=0x11310001 (ADDI R3, R1, 1)
+[tick=   12] [PC=   4] [stage=DECODE   ]   DECODE ADDI R3, R1, 1
+[tick=   13] [PC=   4] [stage=EXECUTE  ]   EXECUTE ADDI R3, R1, 1
+[tick=   14] [PC=   4] [stage=WRITEBACK]   WRITEBACK R3 <- 101
+[tick=   16] [PC=   4] [stage=FETCH    ]   FETCH word=0x22400000 (LI R4, 0)
+[tick=   17] [PC=   5] [stage=DECODE   ]   DECODE LI R4, 0
+[tick=   18] [PC=   5] [stage=EXECUTE  ]   EXECUTE LI R4, 0
+[tick=   19] [PC=   5] [stage=WRITEBACK]   WRITEBACK R4 <- 0
+[tick=   21] [PC=   5] [stage=FETCH    ]   FETCH word=0x225007FF (LI R5, 2047)
+[tick=   22] [PC=   6] [stage=DECODE   ]   DECODE LI R5, 2047
+[tick=   23] [PC=   6] [stage=EXECUTE  ]   EXECUTE LI R5, 2047
+[tick=   24] [PC=   6] [stage=WRITEBACK]   WRITEBACK R5 <- 2047
+[tick=   26] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=   27] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=   28] [PC=   7] [stage=EXECUTE  ]     branch test: R4=0 vs R2=13 -> False
+[tick=   28] [PC=   7] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=   30] [PC=   7] [stage=FETCH    ]   FETCH word=0x20630000 (LW R6, 0(R3))
+[tick=   31] [PC=   8] [stage=DECODE   ]   DECODE LW R6, 0(R3)
+[tick=   32] [PC=   8] [stage=EXECUTE  ]   EXECUTE LW R6, 0(R3)
+[tick=   33] [PC=   8] [stage=MEMORY   ]   MEMORY LW addr=101 -> 72
+[tick=   34] [PC=   8] [stage=WRITEBACK]   WRITEBACK R6 <- 72
+[tick=   36] [PC=   8] [stage=FETCH    ]   FETCH word=0x21650000 (SW R6, 0(R5))
+[tick=   37] [PC=   9] [stage=DECODE   ]   DECODE SW R6, 0(R5)
+[tick=   38] [PC=   9] [stage=EXECUTE  ]   EXECUTE SW R6, 0(R5)
+[tick=   39] [PC=   9] [stage=MEMORY   ]   MEMORY SW addr=2047 val=72
+[tick=   41] [PC=   9] [stage=FETCH    ]   FETCH word=0x11330001 (ADDI R3, R3, 1)
+[tick=   42] [PC=  10] [stage=DECODE   ]   DECODE ADDI R3, R3, 1
+[tick=   43] [PC=  10] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, 1
+[tick=   44] [PC=  10] [stage=WRITEBACK]   WRITEBACK R3 <- 102
+[tick=   46] [PC=  10] [stage=FETCH    ]   FETCH word=0x11440001 (ADDI R4, R4, 1)
+[tick=   47] [PC=  11] [stage=DECODE   ]   DECODE ADDI R4, R4, 1
+[tick=   48] [PC=  11] [stage=EXECUTE  ]   EXECUTE ADDI R4, R4, 1
+[tick=   49] [PC=  11] [stage=WRITEBACK]   WRITEBACK R4 <- 1
+[tick=   51] [PC=  11] [stage=FETCH    ]   FETCH word=0x40000006 (JMP 6)
+[tick=   52] [PC=  12] [stage=DECODE   ]   DECODE JMP 6
+[tick=   53] [PC=   6] [stage=EXECUTE  ]   EXECUTE JMP 6
+[tick=   55] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=   56] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=   57] [PC=   7] [stage=EXECUTE  ]     branch test: R4=1 vs R2=13 -> False
+[tick=   57] [PC=   7] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=   59] [PC=   7] [stage=FETCH    ]   FETCH word=0x20630000 (LW R6, 0(R3))
+[tick=   60] [PC=   8] [stage=DECODE   ]   DECODE LW R6, 0(R3)
+[tick=   61] [PC=   8] [stage=EXECUTE  ]   EXECUTE LW R6, 0(R3)
+[tick=   62] [PC=   8] [stage=MEMORY   ]   MEMORY LW addr=102 -> 101
+[tick=   63] [PC=   8] [stage=WRITEBACK]   WRITEBACK R6 <- 101
+[tick=   65] [PC=   8] [stage=FETCH    ]   FETCH word=0x21650000 (SW R6, 0(R5))
+[tick=   66] [PC=   9] [stage=DECODE   ]   DECODE SW R6, 0(R5)
+[tick=   67] [PC=   9] [stage=EXECUTE  ]   EXECUTE SW R6, 0(R5)
+[tick=   68] [PC=   9] [stage=MEMORY   ]   MEMORY SW addr=2047 val=101
+[tick=   70] [PC=   9] [stage=FETCH    ]   FETCH word=0x11330001 (ADDI R3, R3, 1)
+[tick=   71] [PC=  10] [stage=DECODE   ]   DECODE ADDI R3, R3, 1
+[tick=   72] [PC=  10] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, 1
+[tick=   73] [PC=  10] [stage=WRITEBACK]   WRITEBACK R3 <- 103
+[tick=   75] [PC=  10] [stage=FETCH    ]   FETCH word=0x11440001 (ADDI R4, R4, 1)
+[tick=   76] [PC=  11] [stage=DECODE   ]   DECODE ADDI R4, R4, 1
+[tick=   77] [PC=  11] [stage=EXECUTE  ]   EXECUTE ADDI R4, R4, 1
+[tick=   78] [PC=  11] [stage=WRITEBACK]   WRITEBACK R4 <- 2
+[tick=   80] [PC=  11] [stage=FETCH    ]   FETCH word=0x40000006 (JMP 6)
+[tick=   81] [PC=  12] [stage=DECODE   ]   DECODE JMP 6
+[tick=   82] [PC=   6] [stage=EXECUTE  ]   EXECUTE JMP 6
+[tick=   84] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=   85] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=   86] [PC=   7] [stage=EXECUTE  ]     branch test: R4=2 vs R2=13 -> False
+[tick=   86] [PC=   7] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=   88] [PC=   7] [stage=FETCH    ]   FETCH word=0x20630000 (LW R6, 0(R3))
+[tick=   89] [PC=   8] [stage=DECODE   ]   DECODE LW R6, 0(R3)
+[tick=   90] [PC=   8] [stage=EXECUTE  ]   EXECUTE LW R6, 0(R3)
+[tick=   91] [PC=   8] [stage=MEMORY   ]   MEMORY LW addr=103 -> 108
+[tick=   92] [PC=   8] [stage=WRITEBACK]   WRITEBACK R6 <- 108
+[tick=   94] [PC=   8] [stage=FETCH    ]   FETCH word=0x21650000 (SW R6, 0(R5))
+[tick=   95] [PC=   9] [stage=DECODE   ]   DECODE SW R6, 0(R5)
+[tick=   96] [PC=   9] [stage=EXECUTE  ]   EXECUTE SW R6, 0(R5)
+[tick=   97] [PC=   9] [stage=MEMORY   ]   MEMORY SW addr=2047 val=108
+[tick=   99] [PC=   9] [stage=FETCH    ]   FETCH word=0x11330001 (ADDI R3, R3, 1)
+[tick=  100] [PC=  10] [stage=DECODE   ]   DECODE ADDI R3, R3, 1
+[tick=  101] [PC=  10] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, 1
+[tick=  102] [PC=  10] [stage=WRITEBACK]   WRITEBACK R3 <- 104
+[tick=  104] [PC=  10] [stage=FETCH    ]   FETCH word=0x11440001 (ADDI R4, R4, 1)
+[tick=  105] [PC=  11] [stage=DECODE   ]   DECODE ADDI R4, R4, 1
+[tick=  106] [PC=  11] [stage=EXECUTE  ]   EXECUTE ADDI R4, R4, 1
+[tick=  107] [PC=  11] [stage=WRITEBACK]   WRITEBACK R4 <- 3
+[tick=  109] [PC=  11] [stage=FETCH    ]   FETCH word=0x40000006 (JMP 6)
+[tick=  110] [PC=  12] [stage=DECODE   ]   DECODE JMP 6
+[tick=  111] [PC=   6] [stage=EXECUTE  ]   EXECUTE JMP 6
+[tick=  113] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=  114] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=  115] [PC=   7] [stage=EXECUTE  ]     branch test: R4=3 vs R2=13 -> False
+[tick=  115] [PC=   7] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=  117] [PC=   7] [stage=FETCH    ]   FETCH word=0x20630000 (LW R6, 0(R3))
+[tick=  118] [PC=   8] [stage=DECODE   ]   DECODE LW R6, 0(R3)
+[tick=  119] [PC=   8] [stage=EXECUTE  ]   EXECUTE LW R6, 0(R3)
+[tick=  120] [PC=   8] [stage=MEMORY   ]   MEMORY LW addr=104 -> 108
+[tick=  121] [PC=   8] [stage=WRITEBACK]   WRITEBACK R6 <- 108
+[tick=  123] [PC=   8] [stage=FETCH    ]   FETCH word=0x21650000 (SW R6, 0(R5))
+[tick=  124] [PC=   9] [stage=DECODE   ]   DECODE SW R6, 0(R5)
+[tick=  125] [PC=   9] [stage=EXECUTE  ]   EXECUTE SW R6, 0(R5)
+[tick=  126] [PC=   9] [stage=MEMORY   ]   MEMORY SW addr=2047 val=108
+[tick=  128] [PC=   9] [stage=FETCH    ]   FETCH word=0x11330001 (ADDI R3, R3, 1)
+[tick=  129] [PC=  10] [stage=DECODE   ]   DECODE ADDI R3, R3, 1
+[tick=  130] [PC=  10] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, 1
+[tick=  131] [PC=  10] [stage=WRITEBACK]   WRITEBACK R3 <- 105
+[tick=  133] [PC=  10] [stage=FETCH    ]   FETCH word=0x11440001 (ADDI R4, R4, 1)
+[tick=  134] [PC=  11] [stage=DECODE   ]   DECODE ADDI R4, R4, 1
+[tick=  135] [PC=  11] [stage=EXECUTE  ]   EXECUTE ADDI R4, R4, 1
+[tick=  136] [PC=  11] [stage=WRITEBACK]   WRITEBACK R4 <- 4
+[tick=  138] [PC=  11] [stage=FETCH    ]   FETCH word=0x40000006 (JMP 6)
+[tick=  139] [PC=  12] [stage=DECODE   ]   DECODE JMP 6
+[tick=  140] [PC=   6] [stage=EXECUTE  ]   EXECUTE JMP 6
+[tick=  142] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=  143] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=  144] [PC=   7] [stage=EXECUTE  ]     branch test: R4=4 vs R2=13 -> False
+[tick=  144] [PC=   7] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=  146] [PC=   7] [stage=FETCH    ]   FETCH word=0x20630000 (LW R6, 0(R3))
+[tick=  147] [PC=   8] [stage=DECODE   ]   DECODE LW R6, 0(R3)
+[tick=  148] [PC=   8] [stage=EXECUTE  ]   EXECUTE LW R6, 0(R3)
+[tick=  149] [PC=   8] [stage=MEMORY   ]   MEMORY LW addr=105 -> 111
+[tick=  150] [PC=   8] [stage=WRITEBACK]   WRITEBACK R6 <- 111
+[tick=  152] [PC=   8] [stage=FETCH    ]   FETCH word=0x21650000 (SW R6, 0(R5))
+[tick=  153] [PC=   9] [stage=DECODE   ]   DECODE SW R6, 0(R5)
+[tick=  154] [PC=   9] [stage=EXECUTE  ]   EXECUTE SW R6, 0(R5)
+[tick=  155] [PC=   9] [stage=MEMORY   ]   MEMORY SW addr=2047 val=111
+[tick=  157] [PC=   9] [stage=FETCH    ]   FETCH word=0x11330001 (ADDI R3, R3, 1)
+[tick=  158] [PC=  10] [stage=DECODE   ]   DECODE ADDI R3, R3, 1
+[tick=  159] [PC=  10] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, 1
+[tick=  160] [PC=  10] [stage=WRITEBACK]   WRITEBACK R3 <- 106
+[tick=  162] [PC=  10] [stage=FETCH    ]   FETCH word=0x11440001 (ADDI R4, R4, 1)
+[tick=  163] [PC=  11] [stage=DECODE   ]   DECODE ADDI R4, R4, 1
+[tick=  164] [PC=  11] [stage=EXECUTE  ]   EXECUTE ADDI R4, R4, 1
+[tick=  165] [PC=  11] [stage=WRITEBACK]   WRITEBACK R4 <- 5
+[tick=  167] [PC=  11] [stage=FETCH    ]   FETCH word=0x40000006 (JMP 6)
+[tick=  168] [PC=  12] [stage=DECODE   ]   DECODE JMP 6
+[tick=  169] [PC=   6] [stage=EXECUTE  ]   EXECUTE JMP 6
+[tick=  171] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=  172] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=  173] [PC=   7] [stage=EXECUTE  ]     branch test: R4=5 vs R2=13 -> False
+[tick=  173] [PC=   7] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=  175] [PC=   7] [stage=FETCH    ]   FETCH word=0x20630000 (LW R6, 0(R3))
+[tick=  176] [PC=   8] [stage=DECODE   ]   DECODE LW R6, 0(R3)
+[tick=  177] [PC=   8] [stage=EXECUTE  ]   EXECUTE LW R6, 0(R3)
+[tick=  178] [PC=   8] [stage=MEMORY   ]   MEMORY LW addr=106 -> 44
+[tick=  179] [PC=   8] [stage=WRITEBACK]   WRITEBACK R6 <- 44
+[tick=  181] [PC=   8] [stage=FETCH    ]   FETCH word=0x21650000 (SW R6, 0(R5))
+[tick=  182] [PC=   9] [stage=DECODE   ]   DECODE SW R6, 0(R5)
+[tick=  183] [PC=   9] [stage=EXECUTE  ]   EXECUTE SW R6, 0(R5)
+[tick=  184] [PC=   9] [stage=MEMORY   ]   MEMORY SW addr=2047 val=44
+[tick=  186] [PC=   9] [stage=FETCH    ]   FETCH word=0x11330001 (ADDI R3, R3, 1)
+[tick=  187] [PC=  10] [stage=DECODE   ]   DECODE ADDI R3, R3, 1
+[tick=  188] [PC=  10] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, 1
+[tick=  189] [PC=  10] [stage=WRITEBACK]   WRITEBACK R3 <- 107
+[tick=  191] [PC=  10] [stage=FETCH    ]   FETCH word=0x11440001 (ADDI R4, R4, 1)
+[tick=  192] [PC=  11] [stage=DECODE   ]   DECODE ADDI R4, R4, 1
+[tick=  193] [PC=  11] [stage=EXECUTE  ]   EXECUTE ADDI R4, R4, 1
+[tick=  194] [PC=  11] [stage=WRITEBACK]   WRITEBACK R4 <- 6
+[tick=  196] [PC=  11] [stage=FETCH    ]   FETCH word=0x40000006 (JMP 6)
+[tick=  197] [PC=  12] [stage=DECODE   ]   DECODE JMP 6
+[tick=  198] [PC=   6] [stage=EXECUTE  ]   EXECUTE JMP 6
+[tick=  200] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=  201] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=  202] [PC=   7] [stage=EXECUTE  ]     branch test: R4=6 vs R2=13 -> False
+[tick=  202] [PC=   7] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=  204] [PC=   7] [stage=FETCH    ]   FETCH word=0x20630000 (LW R6, 0(R3))
+[tick=  205] [PC=   8] [stage=DECODE   ]   DECODE LW R6, 0(R3)
+[tick=  206] [PC=   8] [stage=EXECUTE  ]   EXECUTE LW R6, 0(R3)
+[tick=  207] [PC=   8] [stage=MEMORY   ]   MEMORY LW addr=107 -> 32
+[tick=  208] [PC=   8] [stage=WRITEBACK]   WRITEBACK R6 <- 32
+[tick=  210] [PC=   8] [stage=FETCH    ]   FETCH word=0x21650000 (SW R6, 0(R5))
+[tick=  211] [PC=   9] [stage=DECODE   ]   DECODE SW R6, 0(R5)
+[tick=  212] [PC=   9] [stage=EXECUTE  ]   EXECUTE SW R6, 0(R5)
+[tick=  213] [PC=   9] [stage=MEMORY   ]   MEMORY SW addr=2047 val=32
+[tick=  215] [PC=   9] [stage=FETCH    ]   FETCH word=0x11330001 (ADDI R3, R3, 1)
+[tick=  216] [PC=  10] [stage=DECODE   ]   DECODE ADDI R3, R3, 1
+[tick=  217] [PC=  10] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, 1
+[tick=  218] [PC=  10] [stage=WRITEBACK]   WRITEBACK R3 <- 108
+[tick=  220] [PC=  10] [stage=FETCH    ]   FETCH word=0x11440001 (ADDI R4, R4, 1)
+[tick=  221] [PC=  11] [stage=DECODE   ]   DECODE ADDI R4, R4, 1
+[tick=  222] [PC=  11] [stage=EXECUTE  ]   EXECUTE ADDI R4, R4, 1
+[tick=  223] [PC=  11] [stage=WRITEBACK]   WRITEBACK R4 <- 7
+[tick=  225] [PC=  11] [stage=FETCH    ]   FETCH word=0x40000006 (JMP 6)
+[tick=  226] [PC=  12] [stage=DECODE   ]   DECODE JMP 6
+[tick=  227] [PC=   6] [stage=EXECUTE  ]   EXECUTE JMP 6
+[tick=  229] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=  230] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=  231] [PC=   7] [stage=EXECUTE  ]     branch test: R4=7 vs R2=13 -> False
+[tick=  231] [PC=   7] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=  233] [PC=   7] [stage=FETCH    ]   FETCH word=0x20630000 (LW R6, 0(R3))
+[tick=  234] [PC=   8] [stage=DECODE   ]   DECODE LW R6, 0(R3)
+[tick=  235] [PC=   8] [stage=EXECUTE  ]   EXECUTE LW R6, 0(R3)
+[tick=  236] [PC=   8] [stage=MEMORY   ]   MEMORY LW addr=108 -> 87
+[tick=  237] [PC=   8] [stage=WRITEBACK]   WRITEBACK R6 <- 87
+[tick=  239] [PC=   8] [stage=FETCH    ]   FETCH word=0x21650000 (SW R6, 0(R5))
+[tick=  240] [PC=   9] [stage=DECODE   ]   DECODE SW R6, 0(R5)
+[tick=  241] [PC=   9] [stage=EXECUTE  ]   EXECUTE SW R6, 0(R5)
+[tick=  242] [PC=   9] [stage=MEMORY   ]   MEMORY SW addr=2047 val=87
+[tick=  244] [PC=   9] [stage=FETCH    ]   FETCH word=0x11330001 (ADDI R3, R3, 1)
+[tick=  245] [PC=  10] [stage=DECODE   ]   DECODE ADDI R3, R3, 1
+[tick=  246] [PC=  10] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, 1
+[tick=  247] [PC=  10] [stage=WRITEBACK]   WRITEBACK R3 <- 109
+[tick=  249] [PC=  10] [stage=FETCH    ]   FETCH word=0x11440001 (ADDI R4, R4, 1)
+[tick=  250] [PC=  11] [stage=DECODE   ]   DECODE ADDI R4, R4, 1
+[tick=  251] [PC=  11] [stage=EXECUTE  ]   EXECUTE ADDI R4, R4, 1
+[tick=  252] [PC=  11] [stage=WRITEBACK]   WRITEBACK R4 <- 8
+[tick=  254] [PC=  11] [stage=FETCH    ]   FETCH word=0x40000006 (JMP 6)
+[tick=  255] [PC=  12] [stage=DECODE   ]   DECODE JMP 6
+[tick=  256] [PC=   6] [stage=EXECUTE  ]   EXECUTE JMP 6
+[tick=  258] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=  259] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=  260] [PC=   7] [stage=EXECUTE  ]     branch test: R4=8 vs R2=13 -> False
+[tick=  260] [PC=   7] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=  262] [PC=   7] [stage=FETCH    ]   FETCH word=0x20630000 (LW R6, 0(R3))
+[tick=  263] [PC=   8] [stage=DECODE   ]   DECODE LW R6, 0(R3)
+[tick=  264] [PC=   8] [stage=EXECUTE  ]   EXECUTE LW R6, 0(R3)
+[tick=  265] [PC=   8] [stage=MEMORY   ]   MEMORY LW addr=109 -> 111
+[tick=  266] [PC=   8] [stage=WRITEBACK]   WRITEBACK R6 <- 111
+[tick=  268] [PC=   8] [stage=FETCH    ]   FETCH word=0x21650000 (SW R6, 0(R5))
+[tick=  269] [PC=   9] [stage=DECODE   ]   DECODE SW R6, 0(R5)
+[tick=  270] [PC=   9] [stage=EXECUTE  ]   EXECUTE SW R6, 0(R5)
+[tick=  271] [PC=   9] [stage=MEMORY   ]   MEMORY SW addr=2047 val=111
+[tick=  273] [PC=   9] [stage=FETCH    ]   FETCH word=0x11330001 (ADDI R3, R3, 1)
+[tick=  274] [PC=  10] [stage=DECODE   ]   DECODE ADDI R3, R3, 1
+[tick=  275] [PC=  10] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, 1
+[tick=  276] [PC=  10] [stage=WRITEBACK]   WRITEBACK R3 <- 110
+[tick=  278] [PC=  10] [stage=FETCH    ]   FETCH word=0x11440001 (ADDI R4, R4, 1)
+[tick=  279] [PC=  11] [stage=DECODE   ]   DECODE ADDI R4, R4, 1
+[tick=  280] [PC=  11] [stage=EXECUTE  ]   EXECUTE ADDI R4, R4, 1
+[tick=  281] [PC=  11] [stage=WRITEBACK]   WRITEBACK R4 <- 9
+[tick=  283] [PC=  11] [stage=FETCH    ]   FETCH word=0x40000006 (JMP 6)
+[tick=  284] [PC=  12] [stage=DECODE   ]   DECODE JMP 6
+[tick=  285] [PC=   6] [stage=EXECUTE  ]   EXECUTE JMP 6
+[tick=  287] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=  288] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=  289] [PC=   7] [stage=EXECUTE  ]     branch test: R4=9 vs R2=13 -> False
+[tick=  289] [PC=   7] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=  291] [PC=   7] [stage=FETCH    ]   FETCH word=0x20630000 (LW R6, 0(R3))
+[tick=  292] [PC=   8] [stage=DECODE   ]   DECODE LW R6, 0(R3)
+[tick=  293] [PC=   8] [stage=EXECUTE  ]   EXECUTE LW R6, 0(R3)
+[tick=  294] [PC=   8] [stage=MEMORY   ]   MEMORY LW addr=110 -> 114
+[tick=  295] [PC=   8] [stage=WRITEBACK]   WRITEBACK R6 <- 114
+[tick=  297] [PC=   8] [stage=FETCH    ]   FETCH word=0x21650000 (SW R6, 0(R5))
+[tick=  298] [PC=   9] [stage=DECODE   ]   DECODE SW R6, 0(R5)
+[tick=  299] [PC=   9] [stage=EXECUTE  ]   EXECUTE SW R6, 0(R5)
+[tick=  300] [PC=   9] [stage=MEMORY   ]   MEMORY SW addr=2047 val=114
+[tick=  302] [PC=   9] [stage=FETCH    ]   FETCH word=0x11330001 (ADDI R3, R3, 1)
+[tick=  303] [PC=  10] [stage=DECODE   ]   DECODE ADDI R3, R3, 1
+[tick=  304] [PC=  10] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, 1
+[tick=  305] [PC=  10] [stage=WRITEBACK]   WRITEBACK R3 <- 111
+[tick=  307] [PC=  10] [stage=FETCH    ]   FETCH word=0x11440001 (ADDI R4, R4, 1)
+[tick=  308] [PC=  11] [stage=DECODE   ]   DECODE ADDI R4, R4, 1
+[tick=  309] [PC=  11] [stage=EXECUTE  ]   EXECUTE ADDI R4, R4, 1
+[tick=  310] [PC=  11] [stage=WRITEBACK]   WRITEBACK R4 <- 10
+[tick=  312] [PC=  11] [stage=FETCH    ]   FETCH word=0x40000006 (JMP 6)
+[tick=  313] [PC=  12] [stage=DECODE   ]   DECODE JMP 6
+[tick=  314] [PC=   6] [stage=EXECUTE  ]   EXECUTE JMP 6
+[tick=  316] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=  317] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=  318] [PC=   7] [stage=EXECUTE  ]     branch test: R4=10 vs R2=13 -> False
+[tick=  318] [PC=   7] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=  320] [PC=   7] [stage=FETCH    ]   FETCH word=0x20630000 (LW R6, 0(R3))
+[tick=  321] [PC=   8] [stage=DECODE   ]   DECODE LW R6, 0(R3)
+[tick=  322] [PC=   8] [stage=EXECUTE  ]   EXECUTE LW R6, 0(R3)
+[tick=  323] [PC=   8] [stage=MEMORY   ]   MEMORY LW addr=111 -> 108
+[tick=  324] [PC=   8] [stage=WRITEBACK]   WRITEBACK R6 <- 108
+[tick=  326] [PC=   8] [stage=FETCH    ]   FETCH word=0x21650000 (SW R6, 0(R5))
+[tick=  327] [PC=   9] [stage=DECODE   ]   DECODE SW R6, 0(R5)
+[tick=  328] [PC=   9] [stage=EXECUTE  ]   EXECUTE SW R6, 0(R5)
+[tick=  329] [PC=   9] [stage=MEMORY   ]   MEMORY SW addr=2047 val=108
+[tick=  331] [PC=   9] [stage=FETCH    ]   FETCH word=0x11330001 (ADDI R3, R3, 1)
+[tick=  332] [PC=  10] [stage=DECODE   ]   DECODE ADDI R3, R3, 1
+[tick=  333] [PC=  10] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, 1
+[tick=  334] [PC=  10] [stage=WRITEBACK]   WRITEBACK R3 <- 112
+[tick=  336] [PC=  10] [stage=FETCH    ]   FETCH word=0x11440001 (ADDI R4, R4, 1)
+[tick=  337] [PC=  11] [stage=DECODE   ]   DECODE ADDI R4, R4, 1
+[tick=  338] [PC=  11] [stage=EXECUTE  ]   EXECUTE ADDI R4, R4, 1
+[tick=  339] [PC=  11] [stage=WRITEBACK]   WRITEBACK R4 <- 11
+[tick=  341] [PC=  11] [stage=FETCH    ]   FETCH word=0x40000006 (JMP 6)
+[tick=  342] [PC=  12] [stage=DECODE   ]   DECODE JMP 6
+[tick=  343] [PC=   6] [stage=EXECUTE  ]   EXECUTE JMP 6
+[tick=  345] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=  346] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=  347] [PC=   7] [stage=EXECUTE  ]     branch test: R4=11 vs R2=13 -> False
+[tick=  347] [PC=   7] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=  349] [PC=   7] [stage=FETCH    ]   FETCH word=0x20630000 (LW R6, 0(R3))
+[tick=  350] [PC=   8] [stage=DECODE   ]   DECODE LW R6, 0(R3)
+[tick=  351] [PC=   8] [stage=EXECUTE  ]   EXECUTE LW R6, 0(R3)
+[tick=  352] [PC=   8] [stage=MEMORY   ]   MEMORY LW addr=112 -> 100
+[tick=  353] [PC=   8] [stage=WRITEBACK]   WRITEBACK R6 <- 100
+[tick=  355] [PC=   8] [stage=FETCH    ]   FETCH word=0x21650000 (SW R6, 0(R5))
+[tick=  356] [PC=   9] [stage=DECODE   ]   DECODE SW R6, 0(R5)
+[tick=  357] [PC=   9] [stage=EXECUTE  ]   EXECUTE SW R6, 0(R5)
+[tick=  358] [PC=   9] [stage=MEMORY   ]   MEMORY SW addr=2047 val=100
+[tick=  360] [PC=   9] [stage=FETCH    ]   FETCH word=0x11330001 (ADDI R3, R3, 1)
+[tick=  361] [PC=  10] [stage=DECODE   ]   DECODE ADDI R3, R3, 1
+[tick=  362] [PC=  10] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, 1
+[tick=  363] [PC=  10] [stage=WRITEBACK]   WRITEBACK R3 <- 113
+[tick=  365] [PC=  10] [stage=FETCH    ]   FETCH word=0x11440001 (ADDI R4, R4, 1)
+[tick=  366] [PC=  11] [stage=DECODE   ]   DECODE ADDI R4, R4, 1
+[tick=  367] [PC=  11] [stage=EXECUTE  ]   EXECUTE ADDI R4, R4, 1
+[tick=  368] [PC=  11] [stage=WRITEBACK]   WRITEBACK R4 <- 12
+[tick=  370] [PC=  11] [stage=FETCH    ]   FETCH word=0x40000006 (JMP 6)
+[tick=  371] [PC=  12] [stage=DECODE   ]   DECODE JMP 6
+[tick=  372] [PC=   6] [stage=EXECUTE  ]   EXECUTE JMP 6
+[tick=  374] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=  375] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=  376] [PC=   7] [stage=EXECUTE  ]     branch test: R4=12 vs R2=13 -> False
+[tick=  376] [PC=   7] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=  378] [PC=   7] [stage=FETCH    ]   FETCH word=0x20630000 (LW R6, 0(R3))
+[tick=  379] [PC=   8] [stage=DECODE   ]   DECODE LW R6, 0(R3)
+[tick=  380] [PC=   8] [stage=EXECUTE  ]   EXECUTE LW R6, 0(R3)
+[tick=  381] [PC=   8] [stage=MEMORY   ]   MEMORY LW addr=113 -> 33
+[tick=  382] [PC=   8] [stage=WRITEBACK]   WRITEBACK R6 <- 33
+[tick=  384] [PC=   8] [stage=FETCH    ]   FETCH word=0x21650000 (SW R6, 0(R5))
+[tick=  385] [PC=   9] [stage=DECODE   ]   DECODE SW R6, 0(R5)
+[tick=  386] [PC=   9] [stage=EXECUTE  ]   EXECUTE SW R6, 0(R5)
+[tick=  387] [PC=   9] [stage=MEMORY   ]   MEMORY SW addr=2047 val=33
+[tick=  389] [PC=   9] [stage=FETCH    ]   FETCH word=0x11330001 (ADDI R3, R3, 1)
+[tick=  390] [PC=  10] [stage=DECODE   ]   DECODE ADDI R3, R3, 1
+[tick=  391] [PC=  10] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, 1
+[tick=  392] [PC=  10] [stage=WRITEBACK]   WRITEBACK R3 <- 114
+[tick=  394] [PC=  10] [stage=FETCH    ]   FETCH word=0x11440001 (ADDI R4, R4, 1)
+[tick=  395] [PC=  11] [stage=DECODE   ]   DECODE ADDI R4, R4, 1
+[tick=  396] [PC=  11] [stage=EXECUTE  ]   EXECUTE ADDI R4, R4, 1
+[tick=  397] [PC=  11] [stage=WRITEBACK]   WRITEBACK R4 <- 13
+[tick=  399] [PC=  11] [stage=FETCH    ]   FETCH word=0x40000006 (JMP 6)
+[tick=  400] [PC=  12] [stage=DECODE   ]   DECODE JMP 6
+[tick=  401] [PC=   6] [stage=EXECUTE  ]   EXECUTE JMP 6
+[tick=  403] [PC=   6] [stage=FETCH    ]   FETCH word=0x35420005 (BGE R4, R2, +5)
+[tick=  404] [PC=   7] [stage=DECODE   ]   DECODE BGE R4, R2, +5
+[tick=  405] [PC=   7] [stage=EXECUTE  ]     branch test: R4=13 vs R2=13 -> True
+[tick=  405] [PC=  12] [stage=EXECUTE  ]   EXECUTE BGE R4, R2, +5
+[tick=  407] [PC=  12] [stage=FETCH    ]   FETCH word=0xFF000000 (HLT)
+[tick=  408] [PC=  13] [stage=DECODE   ]   DECODE HLT
+[tick=  409] [PC=  13] [stage=HALTED   ]   HALT

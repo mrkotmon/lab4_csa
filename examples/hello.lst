@@ -1,0 +1,28 @@
+; entry point: 1
+; address - hex      - mnemonic                 - source
+0100 - 0000000D - .string len=13           - .string "Hello, World!"
+0101 - 00000048 - .string 'H'              - .string "Hello, World!"
+0102 - 00000065 - .string 'e'              - .string "Hello, World!"
+0103 - 0000006C - .string 'l'              - .string "Hello, World!"
+0104 - 0000006C - .string 'l'              - .string "Hello, World!"
+0105 - 0000006F - .string 'o'              - .string "Hello, World!"
+0106 - 0000002C - .string ','              - .string "Hello, World!"
+0107 - 00000020 - .string ' '              - .string "Hello, World!"
+0108 - 00000057 - .string 'W'              - .string "Hello, World!"
+0109 - 0000006F - .string 'o'              - .string "Hello, World!"
+0110 - 00000072 - .string 'r'              - .string "Hello, World!"
+0111 - 0000006C - .string 'l'              - .string "Hello, World!"
+0112 - 00000064 - .string 'd'              - .string "Hello, World!"
+0113 - 00000021 - .string '!'              - .string "Hello, World!"
+0001 - 27100064 - LI R1, 100               - LI   R1, msg
+0002 - 25210000 - LW R2, 0(R1)             - LW   R2, 0(R1)
+0003 - 20310001 - ADDI R3, R1, 1           - ADDI R3, R1, 1
+0004 - 27400000 - LI R4, 0                 - LI   R4, 0
+0005 - 275007FF - LI R5, 2047              - LI   R5, 2047
+0006 - 2E420005 - BGE R4, R2, +5           - BGE  R4, R2, done
+0007 - 25630000 - LW R6, 0(R3)             - LW   R6, 0(R3)
+0008 - 26650000 - SW R6, 0(R5)             - SW   R6, 0(R5)
+0009 - 20330001 - ADDI R3, R3, 1           - ADDI R3, R3, 1
+0010 - 20440001 - ADDI R4, R4, 1           - ADDI R4, R4, 1
+0011 - 40000006 - JMP 6                    - JMP  print_loop
+0012 - A3000000 - HLT                      - HLT

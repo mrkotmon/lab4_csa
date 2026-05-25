@@ -1,0 +1,145 @@
+[tick=    0] [PC=   1] [stage=FETCH    ]   FETCH word=0xF0000000 (EI)
+[tick=    1] [PC=   2] [stage=DECODE   ]   DECODE EI
+[tick=    2] [PC=   2] [stage=EXECUTE  ]     interrupts ENABLED
+[tick=    2] [PC=   2] [stage=EXECUTE  ]   EXECUTE EI
+[tick=    4] [PC=   2] [stage=FETCH    ]   FETCH word=0x40000002 (JMP 2)
+[tick=    5] [PC=   3] [stage=DECODE   ]   DECODE JMP 2
+[tick=    6] [PC=   2] [stage=EXECUTE  ]   EXECUTE JMP 2
+[tick=    8] [PC=   2] [stage=FETCH    ]   FETCH word=0x40000002 (JMP 2)
+[tick=    9] [PC=   3] [stage=DECODE   ]   DECODE JMP 2
+[tick=   10] [PC=   3] [stage=EXECUTE  ]   IRQ: появился символ 'H' (код 72)
+[tick=   10] [PC=   2] [stage=EXECUTE  ]   EXECUTE JMP 2
+[tick=   11] [PC=   2] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, IE=1, IH=0 -> переход в обработчик по адресу 3 (saved_pc=2)
+[tick=   12] [PC=   3] [stage=FETCH    ] * FETCH word=0x221007FE (LI R1, 2046)
+[tick=   13] [PC=   4] [stage=DECODE   ] * DECODE LI R1, 2046
+[tick=   14] [PC=   4] [stage=EXECUTE  ] * EXECUTE LI R1, 2046
+[tick=   15] [PC=   4] [stage=WRITEBACK] * WRITEBACK R1 <- 2046
+[tick=   16] [PC=   4] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=   17] [PC=   4] [stage=FETCH    ] * FETCH word=0x20210000 (LW R2, 0(R1))
+[tick=   18] [PC=   5] [stage=DECODE   ] * DECODE LW R2, 0(R1)
+[tick=   19] [PC=   5] [stage=EXECUTE  ] * EXECUTE LW R2, 0(R1)
+[tick=   20] [PC=   5] [stage=MEMORY   ] * MEMORY LW addr=2046 -> 72
+[tick=   20] [PC=   5] [stage=MEMORY   ] *   CONSUME: прочитан символ 'H' из порта ввода
+[tick=   21] [PC=   5] [stage=WRITEBACK] * WRITEBACK R2 <- 72
+[tick=   23] [PC=   5] [stage=FETCH    ] * FETCH word=0x22300000 (LI R3, 0)
+[tick=   24] [PC=   6] [stage=DECODE   ] * DECODE LI R3, 0
+[tick=   25] [PC=   6] [stage=EXECUTE  ] * EXECUTE LI R3, 0
+[tick=   26] [PC=   6] [stage=WRITEBACK] * WRITEBACK R3 <- 0
+[tick=   28] [PC=   6] [stage=FETCH    ] * FETCH word=0x30230003 (BEQ R2, R3, +3)
+[tick=   29] [PC=   7] [stage=DECODE   ] * DECODE BEQ R2, R3, +3
+[tick=   30] [PC=   7] [stage=EXECUTE  ] * IRQ: появился символ 'i' (код 105)
+[tick=   30] [PC=   7] [stage=EXECUTE  ] *   branch test: R2=72 vs R3=0 -> False
+[tick=   30] [PC=   7] [stage=EXECUTE  ] * EXECUTE BEQ R2, R3, +3
+[tick=   31] [PC=   7] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=   32] [PC=   7] [stage=FETCH    ] * FETCH word=0x221007FF (LI R1, 2047)
+[tick=   33] [PC=   8] [stage=DECODE   ] * DECODE LI R1, 2047
+[tick=   34] [PC=   8] [stage=EXECUTE  ] * EXECUTE LI R1, 2047
+[tick=   35] [PC=   8] [stage=WRITEBACK] * WRITEBACK R1 <- 2047
+[tick=   36] [PC=   8] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=   37] [PC=   8] [stage=FETCH    ] * FETCH word=0x21210000 (SW R2, 0(R1))
+[tick=   38] [PC=   9] [stage=DECODE   ] * DECODE SW R2, 0(R1)
+[tick=   39] [PC=   9] [stage=EXECUTE  ] * EXECUTE SW R2, 0(R1)
+[tick=   40] [PC=   9] [stage=MEMORY   ] * MEMORY SW addr=2047 val=72
+[tick=   41] [PC=   9] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=   42] [PC=   9] [stage=FETCH    ] * FETCH word=0xF2000000 (IRET)
+[tick=   43] [PC=  10] [stage=DECODE   ] * DECODE IRET
+[tick=   44] [PC=   2] [stage=EXECUTE  ]     IRET -> возврат на PC=2
+[tick=   44] [PC=   2] [stage=EXECUTE  ]   EXECUTE IRET
+[tick=   45] [PC=   2] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, IE=1, IH=0 -> переход в обработчик по адресу 3 (saved_pc=2)
+[tick=   46] [PC=   3] [stage=FETCH    ] * FETCH word=0x221007FE (LI R1, 2046)
+[tick=   47] [PC=   4] [stage=DECODE   ] * DECODE LI R1, 2046
+[tick=   48] [PC=   4] [stage=EXECUTE  ] * EXECUTE LI R1, 2046
+[tick=   49] [PC=   4] [stage=WRITEBACK] * WRITEBACK R1 <- 2046
+[tick=   50] [PC=   4] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=   51] [PC=   4] [stage=FETCH    ] * FETCH word=0x20210000 (LW R2, 0(R1))
+[tick=   52] [PC=   5] [stage=DECODE   ] * DECODE LW R2, 0(R1)
+[tick=   53] [PC=   5] [stage=EXECUTE  ] * EXECUTE LW R2, 0(R1)
+[tick=   54] [PC=   5] [stage=MEMORY   ] * MEMORY LW addr=2046 -> 105
+[tick=   54] [PC=   5] [stage=MEMORY   ] *   CONSUME: прочитан символ 'i' из порта ввода
+[tick=   55] [PC=   5] [stage=WRITEBACK] * WRITEBACK R2 <- 105
+[tick=   57] [PC=   5] [stage=FETCH    ] * FETCH word=0x22300000 (LI R3, 0)
+[tick=   58] [PC=   6] [stage=DECODE   ] * DECODE LI R3, 0
+[tick=   59] [PC=   6] [stage=EXECUTE  ] * EXECUTE LI R3, 0
+[tick=   60] [PC=   6] [stage=WRITEBACK] * IRQ: появился символ '!' (код 33)
+[tick=   60] [PC=   6] [stage=WRITEBACK] * WRITEBACK R3 <- 0
+[tick=   61] [PC=   6] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=   62] [PC=   6] [stage=FETCH    ] * FETCH word=0x30230003 (BEQ R2, R3, +3)
+[tick=   63] [PC=   7] [stage=DECODE   ] * DECODE BEQ R2, R3, +3
+[tick=   64] [PC=   7] [stage=EXECUTE  ] *   branch test: R2=105 vs R3=0 -> False
+[tick=   64] [PC=   7] [stage=EXECUTE  ] * EXECUTE BEQ R2, R3, +3
+[tick=   65] [PC=   7] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=   66] [PC=   7] [stage=FETCH    ] * FETCH word=0x221007FF (LI R1, 2047)
+[tick=   67] [PC=   8] [stage=DECODE   ] * DECODE LI R1, 2047
+[tick=   68] [PC=   8] [stage=EXECUTE  ] * EXECUTE LI R1, 2047
+[tick=   69] [PC=   8] [stage=WRITEBACK] * WRITEBACK R1 <- 2047
+[tick=   70] [PC=   8] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=   71] [PC=   8] [stage=FETCH    ] * FETCH word=0x21210000 (SW R2, 0(R1))
+[tick=   72] [PC=   9] [stage=DECODE   ] * DECODE SW R2, 0(R1)
+[tick=   73] [PC=   9] [stage=EXECUTE  ] * EXECUTE SW R2, 0(R1)
+[tick=   74] [PC=   9] [stage=MEMORY   ] * MEMORY SW addr=2047 val=105
+[tick=   75] [PC=   9] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=   76] [PC=   9] [stage=FETCH    ] * FETCH word=0xF2000000 (IRET)
+[tick=   77] [PC=  10] [stage=DECODE   ] * DECODE IRET
+[tick=   78] [PC=   2] [stage=EXECUTE  ]     IRET -> возврат на PC=2
+[tick=   78] [PC=   2] [stage=EXECUTE  ]   EXECUTE IRET
+[tick=   79] [PC=   2] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, IE=1, IH=0 -> переход в обработчик по адресу 3 (saved_pc=2)
+[tick=   80] [PC=   3] [stage=FETCH    ] * FETCH word=0x221007FE (LI R1, 2046)
+[tick=   81] [PC=   4] [stage=DECODE   ] * DECODE LI R1, 2046
+[tick=   82] [PC=   4] [stage=EXECUTE  ] * EXECUTE LI R1, 2046
+[tick=   83] [PC=   4] [stage=WRITEBACK] * WRITEBACK R1 <- 2046
+[tick=   84] [PC=   4] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=   85] [PC=   4] [stage=FETCH    ] * FETCH word=0x20210000 (LW R2, 0(R1))
+[tick=   86] [PC=   5] [stage=DECODE   ] * DECODE LW R2, 0(R1)
+[tick=   87] [PC=   5] [stage=EXECUTE  ] * EXECUTE LW R2, 0(R1)
+[tick=   88] [PC=   5] [stage=MEMORY   ] * MEMORY LW addr=2046 -> 33
+[tick=   88] [PC=   5] [stage=MEMORY   ] *   CONSUME: прочитан символ '!' из порта ввода
+[tick=   88] [PC=   5] [stage=MEMORY   ] * IRQ: появился символ '\0' (код 0)
+[tick=   89] [PC=   5] [stage=WRITEBACK] * WRITEBACK R2 <- 33
+[tick=   90] [PC=   5] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=   91] [PC=   5] [stage=FETCH    ] * FETCH word=0x22300000 (LI R3, 0)
+[tick=   92] [PC=   6] [stage=DECODE   ] * DECODE LI R3, 0
+[tick=   93] [PC=   6] [stage=EXECUTE  ] * EXECUTE LI R3, 0
+[tick=   94] [PC=   6] [stage=WRITEBACK] * WRITEBACK R3 <- 0
+[tick=   95] [PC=   6] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=   96] [PC=   6] [stage=FETCH    ] * FETCH word=0x30230003 (BEQ R2, R3, +3)
+[tick=   97] [PC=   7] [stage=DECODE   ] * DECODE BEQ R2, R3, +3
+[tick=   98] [PC=   7] [stage=EXECUTE  ] *   branch test: R2=33 vs R3=0 -> False
+[tick=   98] [PC=   7] [stage=EXECUTE  ] * EXECUTE BEQ R2, R3, +3
+[tick=   99] [PC=   7] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=  100] [PC=   7] [stage=FETCH    ] * FETCH word=0x221007FF (LI R1, 2047)
+[tick=  101] [PC=   8] [stage=DECODE   ] * DECODE LI R1, 2047
+[tick=  102] [PC=   8] [stage=EXECUTE  ] * EXECUTE LI R1, 2047
+[tick=  103] [PC=   8] [stage=WRITEBACK] * WRITEBACK R1 <- 2047
+[tick=  104] [PC=   8] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=  105] [PC=   8] [stage=FETCH    ] * FETCH word=0x21210000 (SW R2, 0(R1))
+[tick=  106] [PC=   9] [stage=DECODE   ] * DECODE SW R2, 0(R1)
+[tick=  107] [PC=   9] [stage=EXECUTE  ] * EXECUTE SW R2, 0(R1)
+[tick=  108] [PC=   9] [stage=MEMORY   ] * MEMORY SW addr=2047 val=33
+[tick=  109] [PC=   9] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=  110] [PC=   9] [stage=FETCH    ] * FETCH word=0xF2000000 (IRET)
+[tick=  111] [PC=  10] [stage=DECODE   ] * DECODE IRET
+[tick=  112] [PC=   2] [stage=EXECUTE  ]     IRET -> возврат на PC=2
+[tick=  112] [PC=   2] [stage=EXECUTE  ]   EXECUTE IRET
+[tick=  113] [PC=   2] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, IE=1, IH=0 -> переход в обработчик по адресу 3 (saved_pc=2)
+[tick=  114] [PC=   3] [stage=FETCH    ] * FETCH word=0x221007FE (LI R1, 2046)
+[tick=  115] [PC=   4] [stage=DECODE   ] * DECODE LI R1, 2046
+[tick=  116] [PC=   4] [stage=EXECUTE  ] * EXECUTE LI R1, 2046
+[tick=  117] [PC=   4] [stage=WRITEBACK] * WRITEBACK R1 <- 2046
+[tick=  118] [PC=   4] [stage=CHECK_IRQ] * CHECK_IRQ: запрос есть, но IH=1 (nested) — откладываем
+[tick=  119] [PC=   4] [stage=FETCH    ] * FETCH word=0x20210000 (LW R2, 0(R1))
+[tick=  120] [PC=   5] [stage=DECODE   ] * DECODE LW R2, 0(R1)
+[tick=  121] [PC=   5] [stage=EXECUTE  ] * EXECUTE LW R2, 0(R1)
+[tick=  122] [PC=   5] [stage=MEMORY   ] * MEMORY LW addr=2046 -> 0
+[tick=  122] [PC=   5] [stage=MEMORY   ] *   CONSUME: прочитан символ '\0' из порта ввода
+[tick=  123] [PC=   5] [stage=WRITEBACK] * WRITEBACK R2 <- 0
+[tick=  125] [PC=   5] [stage=FETCH    ] * FETCH word=0x22300000 (LI R3, 0)
+[tick=  126] [PC=   6] [stage=DECODE   ] * DECODE LI R3, 0
+[tick=  127] [PC=   6] [stage=EXECUTE  ] * EXECUTE LI R3, 0
+[tick=  128] [PC=   6] [stage=WRITEBACK] * WRITEBACK R3 <- 0
+[tick=  130] [PC=   6] [stage=FETCH    ] * FETCH word=0x30230003 (BEQ R2, R3, +3)
+[tick=  131] [PC=   7] [stage=DECODE   ] * DECODE BEQ R2, R3, +3
+[tick=  132] [PC=   7] [stage=EXECUTE  ] *   branch test: R2=0 vs R3=0 -> True
+[tick=  132] [PC=  10] [stage=EXECUTE  ] * EXECUTE BEQ R2, R3, +3
+[tick=  134] [PC=  10] [stage=FETCH    ] * FETCH word=0xFF000000 (HLT)
+[tick=  135] [PC=  11] [stage=DECODE   ] * DECODE HLT
+[tick=  136] [PC=  11] [stage=HALTED   ] * HALT

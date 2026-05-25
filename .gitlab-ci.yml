@@ -1,0 +1,38 @@
+# CI для GitLab.  В системе ИТМО доступные образы могут отличаться;
+# здесь используется официальный python:3.12 — если он недоступен,
+# заменить на python:3.11 или any доступный из вашего docker-registry.
+
+image: python:3.12
+
+stages:
+  - lint
+  - test
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+    - .ruff_cache
+    - .mypy_cache
+
+before_script:
+  - python -m pip install --upgrade pip
+  - pip install -e ".[dev]"
+
+ruff:
+  stage: lint
+  script:
+    - ruff check src tests
+    - ruff format --check src tests
+
+mypy:
+  stage: lint
+  script:
+    - mypy src
+
+pytest:
+  stage: test
+  script:
+    - pytest -v

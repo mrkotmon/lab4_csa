@@ -1,0 +1,13 @@
+; entry point: 1
+; address - hex      - mnemonic                 - source
+0000 - 00000003 - .word irq_handler        - .word irq_handler
+0001 - A0000000 - EI                       - EI
+0002 - 40000002 - JMP 2                    - JMP main_loop
+0003 - 271007FE - LI R1, 2046              - LI   R1, 2046
+0004 - 25210000 - LW R2, 0(R1)             - LW   R2, 0(R1)
+0005 - 27300000 - LI R3, 0                 - LI   R3, 0
+0006 - 29230003 - BEQ R2, R3, +3           - BEQ  R2, R3, finish
+0007 - 271007FF - LI R1, 2047              - LI   R1, 2047
+0008 - 26210000 - SW R2, 0(R1)             - SW   R2, 0(R1)
+0009 - A2000000 - IRET                     - IRET
+0010 - A3000000 - HLT                      - HLT

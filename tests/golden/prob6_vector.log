@@ -1,0 +1,81 @@
+[tick=    0] [PC=   1] [stage=FETCH    ]   FETCH word=0x27600000 (LI R6, 0)
+[tick=    1] [PC=   2] [stage=DECODE   ]   DECODE LI R6, 0
+[tick=    2] [PC=   2] [stage=EXECUTE  ]   EXECUTE LI R6, 0
+[tick=    3] [PC=   2] [stage=WRITEBACK]   WRITEBACK R6 <- 0
+[tick=    5] [PC=   2] [stage=FETCH    ]   FETCH word=0x82260000 (VBC V2, R6)
+[tick=    6] [PC=   3] [stage=DECODE   ]   DECODE VBC V2, R6
+[tick=    7] [PC=   3] [stage=EXECUTE  ]   EXECUTE VBC V2, R6
+[tick=    8] [PC=   3] [stage=WRITEBACK]   WRITEBACK V2 <- [0, 0, 0, 0]
+[tick=   10] [PC=   3] [stage=FETCH    ]   FETCH word=0x82360000 (VBC V3, R6)
+[tick=   11] [PC=   4] [stage=DECODE   ]   DECODE VBC V3, R6
+[tick=   12] [PC=   4] [stage=EXECUTE  ]   EXECUTE VBC V3, R6
+[tick=   13] [PC=   4] [stage=WRITEBACK]   WRITEBACK V3 <- [0, 0, 0, 0]
+[tick=   15] [PC=   4] [stage=FETCH    ]   FETCH word=0x27100000 (LI R1, 0)
+[tick=   16] [PC=   5] [stage=DECODE   ]   DECODE LI R1, 0
+[tick=   17] [PC=   5] [stage=EXECUTE  ]   EXECUTE LI R1, 0
+[tick=   18] [PC=   5] [stage=WRITEBACK]   WRITEBACK R1 <- 0
+[tick=   20] [PC=   5] [stage=FETCH    ]   FETCH word=0x27200020 (LI R2, 32)
+[tick=   21] [PC=   6] [stage=DECODE   ]   DECODE LI R2, 32
+[tick=   22] [PC=   6] [stage=EXECUTE  ]   EXECUTE LI R2, 32
+[tick=   23] [PC=   6] [stage=WRITEBACK]   WRITEBACK R2 <- 32
+[tick=   25] [PC=   6] [stage=FETCH    ]   FETCH word=0x2730012C (LI R3, 300)
+[tick=   26] [PC=   7] [stage=DECODE   ]   DECODE LI R3, 300
+[tick=   27] [PC=   7] [stage=EXECUTE  ]   EXECUTE LI R3, 300
+[tick=   28] [PC=   7] [stage=WRITEBACK]   WRITEBACK R3 <- 300
+[tick=   30] [PC=   7] [stage=FETCH    ]   FETCH word=0x2E120007 (BGE R1, R2, +7)
+[tick=   31] [PC=   8] [stage=DECODE   ]   DECODE BGE R1, R2, +7
+[tick=   32] [PC=   8] [stage=EXECUTE  ]     branch test: R1=0 vs R2=32 -> False
+[tick=   32] [PC=   8] [stage=EXECUTE  ]   EXECUTE BGE R1, R2, +7
+[tick=   34] [PC=   8] [stage=FETCH    ]   FETCH word=0x00631000 (ADD R6, R3, R1)
+[tick=   35] [PC=   9] [stage=DECODE   ]   DECODE ADD R6, R3, R1
+[tick=   36] [PC=   9] [stage=EXECUTE  ]   EXECUTE ADD R6, R3, R1
+[tick=   37] [PC=   9] [stage=WRITEBACK]   WRITEBACK R6 <- 300
+[tick=   39] [PC=   9] [stage=FETCH    ]   FETCH word=0x80060000 (VLD V0, 0(R6))
+[tick=   40] [PC=  10] [stage=DECODE   ]   DECODE VLD V0, 0(R6)
+[tick=   41] [PC=  10] [stage=EXECUTE  ]   EXECUTE VLD V0, 0(R6)
+[tick=   42] [PC=  10] [stage=MEMORY   ]   MEMORY VLD[0] addr=300 -> V0[0]=1
+[tick=   43] [PC=  10] [stage=MEMORY   ]   MEMORY VLD[1] addr=301 -> V0[1]=2
+[tick=   44] [PC=  10] [stage=MEMORY   ]   MEMORY VLD[2] addr=302 -> V0[2]=3
+[tick=   45] [PC=  10] [stage=MEMORY   ]   MEMORY VLD[3] addr=303 -> V0[3]=4
+[tick=   47] [PC=  10] [stage=FETCH    ]   FETCH word=0x62100000 (VMUL V1, V0, V0)
+... [пропущено 646 строк] ...
+[tick=  799] [PC=  43] [stage=EXECUTE  ]   EXECUTE ADDI R3, R3, -1
+[tick=  800] [PC=  43] [stage=WRITEBACK]   WRITEBACK R3 <- 0
+[tick=  802] [PC=  43] [stage=FETCH    ]   FETCH word=0x00153000 (ADD R1, R5, R3)
+[tick=  803] [PC=  44] [stage=DECODE   ]   DECODE ADD R1, R5, R3
+[tick=  804] [PC=  44] [stage=EXECUTE  ]   EXECUTE ADD R1, R5, R3
+[tick=  805] [PC=  44] [stage=WRITEBACK]   WRITEBACK R1 <- 400
+[tick=  807] [PC=  44] [stage=FETCH    ]   FETCH word=0x25110000 (LW R1, 0(R1))
+[tick=  808] [PC=  45] [stage=DECODE   ]   DECODE LW R1, 0(R1)
+[tick=  809] [PC=  45] [stage=EXECUTE  ]   EXECUTE LW R1, 0(R1)
+[tick=  810] [PC=  45] [stage=MEMORY   ]   MEMORY LW addr=400 -> 52
+[tick=  811] [PC=  45] [stage=WRITEBACK]   WRITEBACK R1 <- 52
+[tick=  813] [PC=  45] [stage=FETCH    ]   FETCH word=0x26120000 (SW R1, 0(R2))
+[tick=  814] [PC=  46] [stage=DECODE   ]   DECODE SW R1, 0(R2)
+[tick=  815] [PC=  46] [stage=EXECUTE  ]   EXECUTE SW R1, 0(R2)
+[tick=  816] [PC=  46] [stage=MEMORY   ]   MEMORY SW addr=2047 val=52
+[tick=  818] [PC=  46] [stage=FETCH    ]   FETCH word=0x40000029 (JMP 41)
+[tick=  819] [PC=  47] [stage=DECODE   ]   DECODE JMP 41
+[tick=  820] [PC=  41] [stage=EXECUTE  ]   EXECUTE JMP 41
+[tick=  822] [PC=  41] [stage=FETCH    ]   FETCH word=0x29300005 (BEQ R3, R0, +5)
+[tick=  823] [PC=  42] [stage=DECODE   ]   DECODE BEQ R3, R0, +5
+[tick=  824] [PC=  42] [stage=EXECUTE  ]     branch test: R3=0 vs R0=0 -> True
+[tick=  824] [PC=  47] [stage=EXECUTE  ]   EXECUTE BEQ R3, R0, +5
+[tick=  826] [PC=  47] [stage=FETCH    ]   FETCH word=0x42700000 (JR R7)
+[tick=  827] [PC=  48] [stage=DECODE   ]   DECODE JR R7
+[tick=  828] [PC=  20] [stage=EXECUTE  ]   EXECUTE JR R7
+[tick=  830] [PC=  20] [stage=FETCH    ]   FETCH word=0x2710000A (LI R1, 10)
+[tick=  831] [PC=  21] [stage=DECODE   ]   DECODE LI R1, 10
+[tick=  832] [PC=  21] [stage=EXECUTE  ]   EXECUTE LI R1, 10
+[tick=  833] [PC=  21] [stage=WRITEBACK]   WRITEBACK R1 <- 10
+[tick=  835] [PC=  21] [stage=FETCH    ]   FETCH word=0x272007FF (LI R2, 2047)
+[tick=  836] [PC=  22] [stage=DECODE   ]   DECODE LI R2, 2047
+[tick=  837] [PC=  22] [stage=EXECUTE  ]   EXECUTE LI R2, 2047
+[tick=  838] [PC=  22] [stage=WRITEBACK]   WRITEBACK R2 <- 2047
+[tick=  840] [PC=  22] [stage=FETCH    ]   FETCH word=0x26120000 (SW R1, 0(R2))
+[tick=  841] [PC=  23] [stage=DECODE   ]   DECODE SW R1, 0(R2)
+[tick=  842] [PC=  23] [stage=EXECUTE  ]   EXECUTE SW R1, 0(R2)
+[tick=  843] [PC=  23] [stage=MEMORY   ]   MEMORY SW addr=2047 val=10
+[tick=  845] [PC=  23] [stage=FETCH    ]   FETCH word=0xA3000000 (HLT)
+[tick=  846] [PC=  24] [stage=DECODE   ]   DECODE HLT
+[tick=  847] [PC=  24] [stage=HALTED   ]   HALT
