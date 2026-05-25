@@ -2,7 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [main, master, branch1]
+    branches:
+      - main
+      - master
+      - fix/lab4-requirements
   pull_request:
 
 jobs:
