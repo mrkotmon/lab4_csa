@@ -1,0 +1,12 @@
+; entry point: 4
+; address - hex      - mnemonic                 - source
+0000 - 0000000C - .word irq_handler        - .word irq_handler
+0004 - A0000000 - EI                       - EI
+0008 - 40000008 - JMP 8                    - JMP wait
+0012 - 27101FF8 - LI R1, 8184              - LI  R1, 8184
+0016 - 25210000 - LW R2, 0(R1)             - LW  R2, 0(R1)
+0020 - 2920000C - BEQ R2, R0, +12          - BEQ R2, R0, finish
+0024 - 27301FFC - LI R3, 8188              - LI  R3, 8188
+0028 - 26230000 - SW R2, 0(R3)             - SW  R2, 0(R3)
+0032 - A2000000 - IRET                     - IRET
+0036 - A3000000 - HLT                      - HLT

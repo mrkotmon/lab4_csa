@@ -1,0 +1,87 @@
+; entry point: 4
+; address - hex      - mnemonic                 - source
+0000 - 00000014 - .word irq_handler        - .word irq_handler
+1024 - 00000013 - .string len=19           - .string "What is your name?\n"
+1028 - 00000057 - .string 'W'              - .string "What is your name?\n"
+1032 - 00000068 - .string 'h'              - .string "What is your name?\n"
+1036 - 00000061 - .string 'a'              - .string "What is your name?\n"
+1040 - 00000074 - .string 't'              - .string "What is your name?\n"
+1044 - 00000020 - .string ' '              - .string "What is your name?\n"
+1048 - 00000069 - .string 'i'              - .string "What is your name?\n"
+1052 - 00000073 - .string 's'              - .string "What is your name?\n"
+1056 - 00000020 - .string ' '              - .string "What is your name?\n"
+1060 - 00000079 - .string 'y'              - .string "What is your name?\n"
+1064 - 0000006F - .string 'o'              - .string "What is your name?\n"
+1068 - 00000075 - .string 'u'              - .string "What is your name?\n"
+1072 - 00000072 - .string 'r'              - .string "What is your name?\n"
+1076 - 00000020 - .string ' '              - .string "What is your name?\n"
+1080 - 0000006E - .string 'n'              - .string "What is your name?\n"
+1084 - 00000061 - .string 'a'              - .string "What is your name?\n"
+1088 - 0000006D - .string 'm'              - .string "What is your name?\n"
+1092 - 00000065 - .string 'e'              - .string "What is your name?\n"
+1096 - 0000003F - .string '?'              - .string "What is your name?\n"
+1100 - 0000000A - .string '\n'             - .string "What is your name?\n"
+1104 - 00000007 - .string len=7            - .string "Hello, "
+1108 - 00000048 - .string 'H'              - .string "Hello, "
+1112 - 00000065 - .string 'e'              - .string "Hello, "
+1116 - 0000006C - .string 'l'              - .string "Hello, "
+1120 - 0000006C - .string 'l'              - .string "Hello, "
+1124 - 0000006F - .string 'o'              - .string "Hello, "
+1128 - 0000002C - .string ','              - .string "Hello, "
+1132 - 00000020 - .string ' '              - .string "Hello, "
+1136 - 00000000 - .word 0                  - .word 0
+1140 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1144 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1148 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1152 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1156 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1160 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1164 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1168 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1172 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1176 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1180 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1184 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1188 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1192 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1196 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1200 - 00000000 - .word 0                  - .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1204 - 00000002 - .string len=2            - .string "!\n"
+1208 - 00000021 - .string '!'              - .string "!\n"
+1212 - 0000000A - .string '\n'             - .string "!\n"
+0004 - 27100400 - LI R1, 1024              - LI  R1, question
+0008 - 41700068 - JAL R7, 104              - JAL R7, print_pstr
+0012 - A0000000 - EI                       - EI
+0016 - 40000010 - JMP 16                   - JMP wait
+0020 - 27101FF8 - LI R1, 8184              - LI  R1, 8184
+0024 - 25210000 - LW R2, 0(R1)             - LW  R2, 0(R1)
+0028 - 2730000A - LI R3, 10                - LI  R3, 10
+0032 - 29230024 - BEQ R2, R3, +36          - BEQ R2, R3, complete
+0036 - 27300470 - LI R3, 1136              - LI  R3, name
+0040 - 25430000 - LW R4, 0(R3)             - LW  R4, 0(R3)
+0044 - 22540004 - MULI R5, R4, 4           - MULI R5, R4, 4
+0048 - 00553000 - ADD R5, R5, R3           - ADD  R5, R5, R3
+0052 - 20550004 - ADDI R5, R5, 4           - ADDI R5, R5, 4
+0056 - 26250000 - SW R2, 0(R5)             - SW   R2, 0(R5)
+0060 - 20440001 - ADDI R4, R4, 1           - ADDI R4, R4, 1
+0064 - 26430000 - SW R4, 0(R3)             - SW   R4, 0(R3)
+0068 - A2000000 - IRET                     - IRET
+0072 - A1000000 - DI                       - DI
+0076 - 27100450 - LI R1, 1104              - LI  R1, greeting
+0080 - 41700068 - JAL R7, 104              - JAL R7, print_pstr
+0084 - 27100470 - LI R1, 1136              - LI  R1, name
+0088 - 41700068 - JAL R7, 104              - JAL R7, print_pstr
+0092 - 271004B4 - LI R1, 1204              - LI  R1, suffix
+0096 - 41700068 - JAL R7, 104              - JAL R7, print_pstr
+0100 - A3000000 - HLT                      - HLT
+0104 - 25210000 - LW R2, 0(R1)             - LW   R2, 0(R1)
+0108 - 20310004 - ADDI R3, R1, 4           - ADDI R3, R1, 4
+0112 - 27400000 - LI R4, 0                 - LI   R4, 0
+0116 - 27501FFC - LI R5, 8188              - LI   R5, 8188
+0120 - 2E420014 - BGE R4, R2, +20          - BGE  R4, R2, pp_done
+0124 - 25630000 - LW R6, 0(R3)             - LW   R6, 0(R3)
+0128 - 26650000 - SW R6, 0(R5)             - SW   R6, 0(R5)
+0132 - 20330004 - ADDI R3, R3, 4           - ADDI R3, R3, 4
+0136 - 20440001 - ADDI R4, R4, 1           - ADDI R4, R4, 1
+0140 - 40000078 - JMP 120                  - JMP  pp_loop
+0144 - 42700000 - JR R7                    - JR   R7

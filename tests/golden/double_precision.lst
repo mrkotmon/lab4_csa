@@ -1,0 +1,35 @@
+; entry point: 4
+; address - hex      - mnemonic                 - source
+1024 - FFFFFFFF - .word -1                 - .word -1
+1028 - 00000000 - .word 0                  - .word 0
+1032 - 00000001 - .word 1                  - .word 1
+1036 - 00000000 - .word 0                  - .word 0
+0004 - 27100400 - LI R1, 1024              - LI   R1, low_a
+0008 - 25210000 - LW R2, 0(R1)             - LW   R2, 0(R1)
+0012 - 27100408 - LI R1, 1032              - LI   R1, low_b
+0016 - 25310000 - LW R3, 0(R1)             - LW   R3, 0(R1)
+0020 - 00423000 - ADD R4, R2, R3           - ADD  R4, R2, R3
+0024 - 27700000 - LI R7, 0                 - LI   R7, 0
+0028 - 2B200008 - BLT R2, R0, +8           - BLT  R2, R0, a_negative
+0032 - 2B300008 - BLT R3, R0, +8           - BLT  R3, R0, mixed_sign
+0036 - 40000038 - JMP 56                   - JMP  add_high
+0040 - 2B300008 - BLT R3, R0, +8           - BLT  R3, R0, set_carry
+0044 - 2E400004 - BGE R4, R0, +4           - BGE  R4, R0, set_carry
+0048 - 40000038 - JMP 56                   - JMP  add_high
+0052 - 27700001 - LI R7, 1                 - LI   R7, 1
+0056 - 27100404 - LI R1, 1028              - LI   R1, high_a
+0060 - 25510000 - LW R5, 0(R1)             - LW   R5, 0(R1)
+0064 - 2710040C - LI R1, 1036              - LI   R1, high_b
+0068 - 25610000 - LW R6, 0(R1)             - LW   R6, 0(R1)
+0072 - 00556000 - ADD R5, R5, R6           - ADD  R5, R5, R6
+0076 - 00557000 - ADD R5, R5, R7           - ADD  R5, R5, R7
+0080 - 27601FFC - LI R6, 8188              - LI   R6, 8188
+0084 - 20550030 - ADDI R5, R5, 48          - ADDI R5, R5, 48
+0088 - 26560000 - SW R5, 0(R6)             - SW   R5, 0(R6)
+0092 - 2770003A - LI R7, 58                - LI   R7, 58
+0096 - 26760000 - SW R7, 0(R6)             - SW   R7, 0(R6)
+0100 - 20440030 - ADDI R4, R4, 48          - ADDI R4, R4, 48
+0104 - 26460000 - SW R4, 0(R6)             - SW   R4, 0(R6)
+0108 - 2770000A - LI R7, 10                - LI   R7, 10
+0112 - 26760000 - SW R7, 0(R6)             - SW   R7, 0(R6)
+0116 - A3000000 - HLT                      - HLT

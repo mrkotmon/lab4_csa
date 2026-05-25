@@ -1,0 +1,8 @@
+; entry point: 4
+; address - hex      - mnemonic                 - source
+0004 - 27201FFC - LI R2, 8188              - LI R2, 8188
+0008 - 27100041 - LI R1, 65                - LI R1, 65
+0012 - 26120000 - SW R1, 0(R2)             - SW R1, 0(R2)
+0016 - 2710000A - LI R1, 10                - LI R1, 10
+0020 - 26120000 - SW R1, 0(R2)             - SW R1, 0(R2)
+0024 - A3000000 - HLT                      - HLT

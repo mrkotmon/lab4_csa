@@ -1,0 +1,81 @@
+[tick=    0] [PC=   4] [stage=FETCH    ]   FETCH word=0x27100400 (LI R1, 1024)
+[tick=    1] [PC=   8] [stage=DECODE   ]   DECODE LI R1, 1024
+[tick=    2] [PC=   8] [stage=EXECUTE  ]   EXECUTE LI R1, 1024
+[tick=    3] [PC=   8] [stage=WRITEBACK]   WRITEBACK R1 <- 1024
+[tick=    5] [PC=   8] [stage=FETCH    ]   FETCH word=0x80010000 (VLD V0, 0(R1))
+[tick=    6] [PC=  12] [stage=DECODE   ]   DECODE VLD V0, 0(R1)
+[tick=    7] [PC=  12] [stage=EXECUTE  ]   EXECUTE VLD V0, 0(R1)
+[tick=    8] [PC=  12] [stage=MEMORY   ]   MEMORY VLD[0] addr=1024 -> V0[0]=8
+[tick=    9] [PC=  12] [stage=MEMORY   ]   MEMORY VLD[1] addr=1028 -> V0[1]=12
+[tick=   10] [PC=  12] [stage=MEMORY   ]   MEMORY VLD[2] addr=1032 -> V0[2]=16
+[tick=   11] [PC=  12] [stage=MEMORY   ]   MEMORY VLD[3] addr=1036 -> V0[3]=20
+[tick=   13] [PC=  12] [stage=FETCH    ]   FETCH word=0x27100410 (LI R1, 1040)
+[tick=   14] [PC=  16] [stage=DECODE   ]   DECODE LI R1, 1040
+[tick=   15] [PC=  16] [stage=EXECUTE  ]   EXECUTE LI R1, 1040
+[tick=   16] [PC=  16] [stage=WRITEBACK]   WRITEBACK R1 <- 1040
+[tick=   18] [PC=  16] [stage=FETCH    ]   FETCH word=0x80110000 (VLD V1, 0(R1))
+[tick=   19] [PC=  20] [stage=DECODE   ]   DECODE VLD V1, 0(R1)
+[tick=   20] [PC=  20] [stage=EXECUTE  ]   EXECUTE VLD V1, 0(R1)
+[tick=   21] [PC=  20] [stage=MEMORY   ]   MEMORY VLD[0] addr=1040 -> V1[0]=2
+[tick=   22] [PC=  20] [stage=MEMORY   ]   MEMORY VLD[1] addr=1044 -> V1[1]=3
+[tick=   23] [PC=  20] [stage=MEMORY   ]   MEMORY VLD[2] addr=1048 -> V1[2]=4
+[tick=   24] [PC=  20] [stage=MEMORY   ]   MEMORY VLD[3] addr=1052 -> V1[3]=5
+[tick=   26] [PC=  20] [stage=FETCH    ]   FETCH word=0x60201000 (VADD V2, V0, V1)
+[tick=   27] [PC=  24] [stage=DECODE   ]   DECODE VADD V2, V0, V1
+[tick=   28] [PC=  24] [stage=EXECUTE  ]     V0=[8, 12, 16, 20] + V1=[2, 3, 4, 5] -> V2=[10, 15, 20, 25]  (4 элемента за 1 такт ALU!)
+[tick=   28] [PC=  24] [stage=EXECUTE  ]   EXECUTE VADD V2, V0, V1
+[tick=   29] [PC=  24] [stage=WRITEBACK]   WRITEBACK V2 <- [10, 15, 20, 25]
+[tick=   31] [PC=  24] [stage=FETCH    ]   FETCH word=0x61201000 (VSUB V2, V0, V1)
+[tick=   32] [PC=  28] [stage=DECODE   ]   DECODE VSUB V2, V0, V1
+[tick=   33] [PC=  28] [stage=EXECUTE  ]     V0=[8, 12, 16, 20] - V1=[2, 3, 4, 5] -> V2=[6, 9, 12, 15]  (4 элемента за 1 такт ALU!)
+[tick=   33] [PC=  28] [stage=EXECUTE  ]   EXECUTE VSUB V2, V0, V1
+[tick=   34] [PC=  28] [stage=WRITEBACK]   WRITEBACK V2 <- [6, 9, 12, 15]
+[tick=   36] [PC=  28] [stage=FETCH    ]   FETCH word=0x62201000 (VMUL V2, V0, V1)
+[tick=   37] [PC=  32] [stage=DECODE   ]   DECODE VMUL V2, V0, V1
+[tick=   38] [PC=  32] [stage=EXECUTE  ]     V0=[8, 12, 16, 20] * V1=[2, 3, 4, 5] -> V2=[16, 36, 64, 100]  (4 элемента за 1 такт ALU!)
+[tick=   38] [PC=  32] [stage=EXECUTE  ]   EXECUTE VMUL V2, V0, V1
+[tick=   39] [PC=  32] [stage=WRITEBACK]   WRITEBACK V2 <- [16, 36, 64, 100]
+[tick=   41] [PC=  32] [stage=FETCH    ]   FETCH word=0x63201000 (VDIV V2, V0, V1)
+[tick=   42] [PC=  36] [stage=DECODE   ]   DECODE VDIV V2, V0, V1
+[tick=   43] [PC=  36] [stage=EXECUTE  ]     V0=[8, 12, 16, 20] / V1=[2, 3, 4, 5] -> V2=[4, 4, 4, 4]  (4 элемента за 1 такт ALU!)
+... [пропущено 6 строк] ...
+[tick=   49] [PC=  40] [stage=WRITEBACK]   WRITEBACK V3 <- [1, 1, 1, 1]
+[tick=   51] [PC=  40] [stage=FETCH    ]   FETCH word=0x27100420 (LI R1, 1056)
+[tick=   52] [PC=  44] [stage=DECODE   ]   DECODE LI R1, 1056
+[tick=   53] [PC=  44] [stage=EXECUTE  ]   EXECUTE LI R1, 1056
+[tick=   54] [PC=  44] [stage=WRITEBACK]   WRITEBACK R1 <- 1056
+[tick=   56] [PC=  44] [stage=FETCH    ]   FETCH word=0x81210000 (VST V2, 0(R1))
+[tick=   57] [PC=  48] [stage=DECODE   ]   DECODE VST V2, 0(R1)
+[tick=   58] [PC=  48] [stage=EXECUTE  ]   EXECUTE VST V2, 0(R1)
+[tick=   59] [PC=  48] [stage=MEMORY   ]   MEMORY VST[0] V2[0]=4 -> addr=1056
+[tick=   60] [PC=  48] [stage=MEMORY   ]   MEMORY VST[1] V2[1]=4 -> addr=1060
+[tick=   61] [PC=  48] [stage=MEMORY   ]   MEMORY VST[2] V2[2]=4 -> addr=1064
+[tick=   62] [PC=  48] [stage=MEMORY   ]   MEMORY VST[3] V2[3]=4 -> addr=1068
+[tick=   64] [PC=  48] [stage=FETCH    ]   FETCH word=0x65230000 (VRED R2, V3)
+[tick=   65] [PC=  52] [stage=DECODE   ]   DECODE VRED R2, V3
+[tick=   66] [PC=  52] [stage=EXECUTE  ]     VRED V3=[1, 1, 1, 1] -> R2=4
+[tick=   66] [PC=  52] [stage=EXECUTE  ]   EXECUTE VRED R2, V3
+[tick=   67] [PC=  52] [stage=WRITEBACK]   WRITEBACK R2 <- 4
+[tick=   69] [PC=  52] [stage=FETCH    ]   FETCH word=0x20220030 (ADDI R2, R2, 48)
+[tick=   70] [PC=  56] [stage=DECODE   ]   DECODE ADDI R2, R2, 48
+[tick=   71] [PC=  56] [stage=EXECUTE  ]   EXECUTE ADDI R2, R2, 48
+[tick=   72] [PC=  56] [stage=WRITEBACK]   WRITEBACK R2 <- 52
+[tick=   74] [PC=  56] [stage=FETCH    ]   FETCH word=0x27301FFC (LI R3, 8188)
+[tick=   75] [PC=  60] [stage=DECODE   ]   DECODE LI R3, 8188
+[tick=   76] [PC=  60] [stage=EXECUTE  ]   EXECUTE LI R3, 8188
+[tick=   77] [PC=  60] [stage=WRITEBACK]   WRITEBACK R3 <- 8188
+[tick=   79] [PC=  60] [stage=FETCH    ]   FETCH word=0x26230000 (SW R2, 0(R3))
+[tick=   80] [PC=  64] [stage=DECODE   ]   DECODE SW R2, 0(R3)
+[tick=   81] [PC=  64] [stage=EXECUTE  ]   EXECUTE SW R2, 0(R3)
+[tick=   82] [PC=  64] [stage=MEMORY   ]   MEMORY SW addr=8188 val=52
+[tick=   84] [PC=  64] [stage=FETCH    ]   FETCH word=0x2720000A (LI R2, 10)
+[tick=   85] [PC=  68] [stage=DECODE   ]   DECODE LI R2, 10
+[tick=   86] [PC=  68] [stage=EXECUTE  ]   EXECUTE LI R2, 10
+[tick=   87] [PC=  68] [stage=WRITEBACK]   WRITEBACK R2 <- 10
+[tick=   89] [PC=  68] [stage=FETCH    ]   FETCH word=0x26230000 (SW R2, 0(R3))
+[tick=   90] [PC=  72] [stage=DECODE   ]   DECODE SW R2, 0(R3)
+[tick=   91] [PC=  72] [stage=EXECUTE  ]   EXECUTE SW R2, 0(R3)
+[tick=   92] [PC=  72] [stage=MEMORY   ]   MEMORY SW addr=8188 val=10
+[tick=   94] [PC=  72] [stage=FETCH    ]   FETCH word=0xA3000000 (HLT)
+[tick=   95] [PC=  76] [stage=DECODE   ]   DECODE HLT
+[tick=   96] [PC=  76] [stage=HALTED   ]   HALT
