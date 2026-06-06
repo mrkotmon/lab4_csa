@@ -1,5 +1,3 @@
-
-
 from __future__ import annotations
 
 import re
@@ -71,9 +69,7 @@ class Macro:
 
 
 def _condition_is_true(expr: str, constants: dict[str, str], src_line_no: int) -> bool:
-    """Вычислить простое условие препроцессора после подстановки `.equ`.
-
-    """
+    """Вычислить простое условие препроцессора после подстановки `.equ`."""
     replaced = _replace_tokens(expr.strip(), constants).strip()
     negate = replaced.startswith("!")
     if negate:
@@ -89,9 +85,7 @@ def _condition_is_true(expr: str, constants: dict[str, str], src_line_no: int) -
 
 
 def _preprocess(lines: list[Line]) -> list[Line]:
-    """Раскрыть `.equ`, `.if/.else/.endif` и пользовательские макросы.
-
-    """
+    """Раскрыть `.equ`, `.if/.else/.endif` и пользовательские макросы."""
     constants: dict[str, str] = {}
     macros: dict[str, Macro] = {}
     out: list[Line] = []
@@ -179,9 +173,7 @@ def _preprocess(lines: list[Line]) -> list[Line]:
 
 
 def _expand_pseudo(lines: list[Line]) -> list[Line]:
-    """Развернуть псевдоинструкции, не помещающиеся в одно слово.
-
-    """
+    """Развернуть псевдоинструкции, не помещающиеся в одно слово."""
     out: list[Line] = []
     for line in lines:
         text = line.text
@@ -228,7 +220,7 @@ _TOKEN_RE = re.compile(r"\b\w+\b")
 
 
 def _replace_tokens(text: str, mapping: dict[str, str]) -> str:
-    """Заменить «слова» в тексте по словарю. """
+    """Заменить «слова» в тексте по словарю."""
     if not mapping:
         return text
 
@@ -654,8 +646,7 @@ class Translator:
 
 
 def _check_imm(value: int, bits: int, op_name: str, line_no: int, *, signed: bool = True) -> int:
-    """Проверить, что immediate помещается
-    """
+    """Проверить, что immediate помещается"""
     if signed:
         lo = -(1 << (bits - 1))
         hi = (1 << (bits - 1)) - 1
@@ -686,8 +677,7 @@ def _escape_char(ch: str) -> str:
 
 
 def _decode_escapes(s: str) -> str:
-    """Заменить escape-последовательности на реальные символы.
-    """
+    """Заменить escape-последовательности на реальные символы."""
     out: list[str] = []
     i = 0
     while i < len(s):
@@ -731,7 +721,6 @@ def load_binary(data: bytes) -> tuple[int, dict[int, int]]:
     if pos != len(data):
         raise ValueError("в файле остались лишние байты")
     return entry, memory
-
 
 
 # CLI

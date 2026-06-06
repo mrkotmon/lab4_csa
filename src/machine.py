@@ -1,5 +1,3 @@
-
-
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -39,7 +37,7 @@ class Stage(Enum):
 
 @dataclass
 class InputSchedule:
-    """Расписание ввода: список """
+    """Расписание ввода: список"""
 
     schedule: list[tuple[int, str]]
     _idx: int = 0
@@ -188,8 +186,7 @@ class Processor:
 
     #  запрос прерывания
     def _check_input_event(self) -> None:
-        """Принять все события текущего такта в однословный аппаратный порт
-        """
+        """Принять все события текущего такта в однословный аппаратный порт"""
         while self.input_schedule.has_pending(self.tick):
             _, ch = self.input_schedule.pop()
             if self._input_active_char is not None:

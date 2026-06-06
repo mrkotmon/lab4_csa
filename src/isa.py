@@ -1,5 +1,3 @@
-
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -35,9 +33,7 @@ PROGRAM_START_DEFAULT = WORD_BYTES  # адрес 4
 
 
 class InstrType(IntEnum):
-    """Тип (формат) инструкции — кодируется в старших 3 битах опкода.
-
-    """
+    """Тип (формат) инструкции — кодируется в старших 3 битах опкода."""
 
     R = 0b000  # регистр-регистр-регистр:      [op|rd|rs1|rs2|--]
     I = 0b001  # noqa: E741  регистр-регистр-immediate16:  [op|rd|rs1|imm16]
@@ -57,8 +53,7 @@ def _op(instr_type: InstrType, index: int) -> int:
 
 
 class Opcode(IntEnum):
-    """Опкоды инструкций.
-    """
+    """Опкоды инструкций."""
 
     #  R-тип
     ADD = _op(InstrType.R, 0)  # 0x00
@@ -113,11 +108,6 @@ class Opcode(IntEnum):
 
 
 def opcode_type(op: int) -> InstrType:
-    """Извлечь тип инструкции из опкода — ОДНА битовая операция.
-
-    Это и есть «hardwired»-дешифратор формата: в железе он сводится к
-    тому, что три старших провода опкода идут на мультиплексор формата.
-    """
     return InstrType((op >> 5) & 0b111)
 
 
@@ -165,7 +155,6 @@ def clip_word(value: int) -> int:
 #  структура декодированной инструкции
 @dataclass(frozen=True)
 class Instruction:
-
     opcode: Opcode
     rd: int = 0  # регистр-приёмник (или vd для векторных)
     rs1: int = 0  # регистр-источник 1 (или vs1)
@@ -176,8 +165,7 @@ class Instruction:
 
 #  кодирование
 def encode(op: Opcode, *, rd: int = 0, rs1: int = 0, rs2: int = 0, imm: int = 0) -> int:
-    """Закодировать инструкцию в 32-битное слово.
-    """
+    """Закодировать инструкцию в 32-битное слово."""
     assert 0 <= rd < (1 << REG_BITS), f"rd  out of range: {rd}"
     assert 0 <= rs1 < (1 << REG_BITS), f"rs1 out of range: {rs1}"
     assert 0 <= rs2 < (1 << REG_BITS), f"rs2 out of range: {rs2}"
@@ -202,9 +190,7 @@ def encode(op: Opcode, *, rd: int = 0, rs1: int = 0, rs2: int = 0, imm: int = 0)
 
 
 def decode(word: int) -> Instruction:
-    """Декодировать 32-битное слово в Instruction.
-
-    """
+    """Декодировать 32-битное слово в Instruction."""
     word &= WORD_MASK
     op_val = (word >> 24) & 0xFF
     try:
