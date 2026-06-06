@@ -1,32 +1,4 @@
-"""Транслятор (assembler) для нашего RISC-процессора.
 
-Особенности варианта `asm`:
-  - синтаксис ассемблера, поддержка меток (`label:`);
-  - секции `.text` (код) и `.data` (данные);
-  - директива `.org <addr>` — задаёт текущий адрес;
-  - директива `.word <value>[, value...]` — литералы в памяти данных;
-  - директива `.string "..."` — Pascal-string (pstr): первое слово — длина,
-    далее — по одному символу на машинное слово;
-  - условная компиляция: `.if CONST` / `.else` / `.endif`;
-  - макросы: `.macro name arg1 arg2 ... / .endm`;
-  - константы: `.equ NAME value` (текстовая замена при разборе).
-
-Архитектура `neum`: и код, и данные лежат в одной памяти; различаются
-лишь по адресам, куда мы их положили (определяется `.org` и порядком секций).
-
-Двухпроходный разбор:
-  1) Лексер + первый проход: считаем адреса всех меток.
-  2) Второй проход: кодируем инструкции с разрешёнными метками.
-
-Выходные форматы:
-  - бинарный файл `.bin` — последовательность 32-битных слов little-endian;
-    каждое слово предваряется 32-битным БАЙТОВЫМ адресом, по которому его положить
-    (это позволяет хранить «дырки» в памяти из-за `.org`).
-    Формат записи: `<u32 addr> <u32 word>` повторяется N раз.
-    В начале файла — заголовок `<u32 entry_point>`.
-  - отладочный текстовый дамп `.lst` со строками вида
-    `<address> - <HEXCODE> - <mnemonic>` (требование варианта `binary`).
-"""
 
 from __future__ import annotations
 
@@ -54,9 +26,7 @@ from isa import (
 )
 
 
-# =============================================================================
 # Лексер
-# =============================================================================
 @dataclass
 class Line:
     """Одна логическая строка исходника после удаления комментариев."""
@@ -66,8 +36,6 @@ class Line:
 
 
 def _strip_comment(line: str) -> str:
-    """Удаляем комментарий, начинающийся с `;`. Простейший вариант — без строк."""
-    # Внутри `.string "..."` точка с запятой может встретиться: учитываем кавычки.
     in_quotes = False
     out: list[str] = []
     for ch in line:
@@ -80,7 +48,7 @@ def _strip_comment(line: str) -> str:
 
 
 def _read_lines(source: str) -> list[Line]:
-    """Поделить исходник на строки, убрать комментарии и пустые строки."""
+    """Поделить исходник на строки"""
     result: list[Line] = []
     for i, raw in enumerate(source.splitlines(), start=1):
         clean = _strip_comment(raw).strip()
@@ -89,9 +57,7 @@ def _read_lines(source: str) -> list[Line]:
     return result
 
 
-# =============================================================================
 # Препроцессор: .equ + макросы
-# =============================================================================
 _RE_EQU = re.compile(r"^\.equ\s+(\w+)\s+(.+)$")
 _RE_MACRO_START = re.compile(r"^\.macro\s+(\w+)(.*)$")
 _RE_MACRO_END = re.compile(r"^\.endm\s*$")
@@ -107,9 +73,6 @@ class Macro:
 def _condition_is_true(expr: str, constants: dict[str, str], src_line_no: int) -> bool:
     """Вычислить простое условие препроцессора после подстановки `.equ`.
 
-    Минимальный ASM-язык поддерживает `.if NAME`, `.if 0`, `.if 1` и
-    отрицание `.if !NAME`. Этого достаточно для условной сборки вариантов
-    программы без добавления языка выражений высокого уровня.
     """
     replaced = _replace_tokens(expr.strip(), constants).strip()
     negate = replaced.startswith("!")
@@ -128,9 +91,6 @@ def _condition_is_true(expr: str, constants: dict[str, str], src_line_no: int) -
 def _preprocess(lines: list[Line]) -> list[Line]:
     """Раскрыть `.equ`, `.if/.else/.endif` и пользовательские макросы.
 
-    `.equ NAME value` объявляет константу для следующих строк. Условная
-    компиляция выбирает ровно одну ветку на этапе сборки. Макросы раскрываются
-    текстовой подстановкой; рекурсивные макросы намеренно не поддерживаются.
     """
     constants: dict[str, str] = {}
     macros: dict[str, Macro] = {}
@@ -221,29 +181,16 @@ def _preprocess(lines: list[Line]) -> list[Line]:
 def _expand_pseudo(lines: list[Line]) -> list[Line]:
     """Развернуть псевдоинструкции, не помещающиеся в одно слово.
 
-    Сейчас поддержана одна псевдоинструкция:
-        LI Rd, BIG   (где BIG не влезает в знаковый 16-битный immediate)
-    разворачивается в пару:
-        LUI Rd, hi          ; старшие 16 бит:  Rd <- hi << 16
-        ORI Rd, Rd, lo      ; младшие 16 бит:  Rd <- Rd | lo
-
-    Это удобство на уровне трансляции: пользователь пишет логичный
-    `LI R1, 100000`, а транслятор сам собирает 32-битную константу из
-    двух инструкций (вручную складывать LUI+ORI не нужно).
-
-    Метки не разворачиваем: все адреса в нашей памяти < 2048, то есть
-    гарантированно влезают в 16-битный immediate. Разворачиваем только
-    числовые литералы.
     """
     out: list[Line] = []
     for line in lines:
         text = line.text
-        # отделяем возможную метку в начале (label: LI ...)
+        # отделяем возможную метку в начале
         prefix = ""
         body = text
         if ":" in text:
             idx = text.index(":")
-            # это метка, только если слева — корректный идентификатор
+
             head = text[:idx].strip()
             if re.match(r"^\w+$", head):
                 prefix = text[: idx + 1] + " "
@@ -261,8 +208,6 @@ def _expand_pseudo(lines: list[Line]) -> list[Line]:
                     uval = value & 0xFFFFFFFF
                     hi = (uval >> 16) & 0xFFFF
                     lo = uval & 0xFFFF
-                    # LUI кладёт hi в старшие 16 бит, ORI дописывает младшие.
-                    # Метку (если была) вешаем на ПЕРВУЮ из двух инструкций.
                     out.append(Line(text=f"{prefix}LUI {rd}, {hi}", src_line_no=line.src_line_no))
                     out.append(Line(text=f"ORI {rd}, {rd}, {lo}", src_line_no=line.src_line_no))
                     continue
@@ -283,9 +228,7 @@ _TOKEN_RE = re.compile(r"\b\w+\b")
 
 
 def _replace_tokens(text: str, mapping: dict[str, str]) -> str:
-    """Заменить «слова» в тексте по словарю.  Замена идёт по `\\b\\w+\\b`,
-    что НЕ трогает строковые литералы в `.string "..."` (там пробелы внутри
-    слов составной строки имеют значение, но и кавычки не повредятся)."""
+    """Заменить «слова» в тексте по словарю. """
     if not mapping:
         return text
 
@@ -296,7 +239,7 @@ def _replace_tokens(text: str, mapping: dict[str, str]) -> str:
 
 
 def _split_operands(operands: str) -> list[str]:
-    """Поделить строку операндов по запятой, учитывая кавычки."""
+    """Поделить строку операндов по запятой, учитывая кавычки"""
     if not operands:
         return []
     parts: list[str] = []
@@ -316,9 +259,7 @@ def _split_operands(operands: str) -> list[str]:
     return parts
 
 
-# =============================================================================
 # Парсинг операндов
-# =============================================================================
 _RE_REG = re.compile(r"^R(\d+)$", re.IGNORECASE)
 _RE_VREG = re.compile(r"^V(\d+)$", re.IGNORECASE)
 _RE_MEMREF = re.compile(r"^(-?\d+)\(R(\d+)\)$", re.IGNORECASE)
@@ -386,19 +327,17 @@ def _parse_memref(text: str) -> tuple[int, int]:
     return int(m.group(1)), int(m.group(2))
 
 
-# =============================================================================
-# Транслятор: два прохода
-# =============================================================================
+# Транслятор
 @dataclass
 class Translator:
     labels: dict[str, int] = field(default_factory=dict)
-    # Сюда складываем результат: address -> 32-bit word.  Удобно потом сериализовать.
+    # Сюда  результа
     memory_image: dict[int, int] = field(default_factory=dict)
     # Для отладочного дампа сохраняем (addr, raw, mnemonic_text, src_line).
     debug_dump: list[tuple[int, int, str, str]] = field(default_factory=list)
     entry_point: int = PROGRAM_START_DEFAULT
 
-    # --------- Первый проход: подсчёт адресов меток ---------------------
+    #  Первый проход
     def _first_pass(self, lines: list[Line]) -> list[tuple[int, Line]]:
         """Назначить адрес каждой строке, заполнить self.labels.
 
@@ -412,15 +351,12 @@ class Translator:
         for line in lines:
             text = line.text
 
-            # ---- директивы секций ----
-            # Информативны для читателя кода, но в нашем фон-Неймановском
-            # дизайне различение секций сводится к тому, в какой адрес мы
-            # положили данные (этим управляет `.org`).  Так что директивы
-            # просто пропускаем.
+            #  директивы секций
+
             if text in (".text", ".data"):
                 continue
 
-            # ---- .org N ----
+            #  .org N
             if text.lower().startswith(".org"):
                 rest = text.split(None, 1)[1].strip()
                 current_addr = _parse_int(rest)
@@ -435,8 +371,7 @@ class Translator:
                     )
                 continue
 
-            # ---- метка ----
-            # Поддерживаем  `label:` отдельной строкой и `label: instr` на одной строке.
+            #  метка
             if ":" in text:
                 idx = text.index(":")
                 label = text[:idx].strip()
@@ -448,11 +383,10 @@ class Translator:
                 tail = text[idx + 1 :].strip()
                 if not tail:
                     continue
-                # есть «хвост» — продолжаем с ним как с обычной строкой
                 text = tail
                 line = Line(text=text, src_line_no=line.src_line_no)
 
-            # ---- директивы данных ----
+            #  директивы данных
             if text.lower().startswith(".word"):
                 rest = text.split(None, 1)[1] if len(text.split(None, 1)) > 1 else ""
                 values = _split_operands(rest)
@@ -465,12 +399,10 @@ class Translator:
                 current_addr += len(values) * WORD_BYTES
                 continue
             if text.lower().startswith(".string"):
-                # извлекаем содержимое в кавычках
                 m = re.match(r'^\.string\s+"(.*)"\s*$', text)
                 if not m:
                     raise SyntaxError(f"строка {line.src_line_no}: некорректный .string {text!r}")
                 body = _decode_escapes(m.group(1))
-                # pstr: одно слово — длина, далее по одному коду на слово
                 length = len(body)
                 addressed.append(
                     (
@@ -481,7 +413,7 @@ class Translator:
                 current_addr += (1 + length) * WORD_BYTES  # длина и символы — 32-битные слова
                 continue
 
-            # ---- обычная инструкция: занимает ровно 1 слово (RISC, fixed length) ----
+            #  обычная инструкция
             addressed.append((current_addr, Line(text=text, src_line_no=line.src_line_no)))
             current_addr += WORD_BYTES
 
@@ -490,7 +422,7 @@ class Translator:
 
         return addressed
 
-    # --------- Второй проход: собственно генерация кода --------------------
+    #  Второй прохо
     def _second_pass(self, addressed: list[tuple[int, Line]]) -> None:
         """Закодировать каждую строку и положить в self.memory_image."""
         for addr, line in addressed:
@@ -507,7 +439,7 @@ class Translator:
                 continue
             if text.lower().startswith(".string"):
                 m = re.match(r'^\.string\s+"(.*)"\s*$', text)
-                assert m  # уже проверено
+                assert m
                 body = _decode_escapes(m.group(1))
                 # 1) слово-длина (pstr)
                 self.memory_image[addr] = to_unsigned(len(body), 32)
@@ -539,7 +471,7 @@ class Translator:
             ) from e
 
     def _encode_instruction(self, text: str, addr: int, src_line_no: int) -> tuple[int, str]:
-        """Закодировать одну инструкцию.  Возвращает (32-битное слово, mnemonic)."""
+        """Закодировать одну инструкци"""
         parts = text.split(None, 1)
         op_name = parts[0].upper()
         operands_str = parts[1] if len(parts) > 1 else ""
@@ -550,7 +482,7 @@ class Translator:
         except KeyError as e:
             raise SyntaxError(f"строка {src_line_no}: неизвестная инструкция {op_name}") from e
 
-        # --- R-тип (3 регистра): ADD/SUB/.../OR/XOR ---
+        #  R-тип
         if op in R_TYPE_OPCODES:
             if len(operands) != 3:
                 raise SyntaxError(f"строка {src_line_no}: {op_name} ждёт 3 операнда")
@@ -560,7 +492,7 @@ class Translator:
             word = encode(op, rd=rd, rs1=rs1, rs2=rs2)
             return word, mnemonic(decode(word))
 
-        # --- I-тип: ADDI/SUBI/MULI/ANDI/ORI/LI/LUI/LW/SW/BEQ/.../BGE ---
+        #  I-тип
         if op in I_TYPE_OPCODES:
             # LI Rd, imm    — 2 операнда
             if op in (Opcode.LI, Opcode.LUI):
@@ -584,7 +516,7 @@ class Translator:
                 word = encode(op, rd=rd, rs1=rs1, imm=imm)
                 return word, mnemonic(decode(word))
 
-            # BEQ/BNE/BLT/BGT/BLE/BGE — 3 операнда: Rd, Rs1, label/offset
+            # BEQ/BNE/BLT/BGT/BLE/BGE
             if op in (Opcode.BEQ, Opcode.BNE, Opcode.BLT, Opcode.BGT, Opcode.BLE, Opcode.BGE):
                 if len(operands) != 3:
                     raise SyntaxError(f"строка {src_line_no}: {op_name} ждёт 3 операнда")
@@ -597,13 +529,12 @@ class Translator:
                 word = encode(op, rd=rd, rs1=rs1, imm=offset)
                 return word, mnemonic(decode(word))
 
-            # ADDI/SUBI/MULI/ANDI/ORI — 3 операнда: Rd, Rs1, imm
+            # ADDI/SUBI/MULI/ANDI/ORI
             if len(operands) != 3:
                 raise SyntaxError(f"строка {src_line_no}: {op_name} ждёт 3 операнда")
             rd = _parse_reg(operands[0])
             rs1 = _parse_reg(operands[1])
             imm = self._resolve_value(operands[2], src_line_no)
-            # логические ANDI/ORI трактуют immediate как битовую маску (беззнаковый)
             imm = _check_imm(
                 imm,
                 IMM16_BITS,
@@ -614,7 +545,7 @@ class Translator:
             word = encode(op, rd=rd, rs1=rs1, imm=imm)
             return word, mnemonic(decode(word))
 
-        # --- J-тип ---
+        #  J-тип
         if op == Opcode.JMP:
             if len(operands) != 1:
                 raise SyntaxError(f"строка {src_line_no}: JMP ждёт 1 операнд (адрес)")
@@ -637,7 +568,7 @@ class Translator:
             word = encode(op, rd=rd)
             return word, mnemonic(decode(word))
 
-        # --- V-тип ---
+        #  V-тип
         if op in (Opcode.VADD, Opcode.VSUB, Opcode.VMUL, Opcode.VDIV, Opcode.VCMP):
             if len(operands) != 3:
                 raise SyntaxError(f"строка {src_line_no}: {op_name} ждёт 3 векторных регистра")
@@ -678,7 +609,7 @@ class Translator:
 
         raise SyntaxError(f"строка {src_line_no}: opcode {op_name} не обработан транслятором")
 
-    # --------- API ---------------------------------------------------------
+    #  API
     def translate(self, source: str) -> None:
         """Полный цикл: разбор + два прохода."""
         lines = _read_lines(source)
@@ -703,8 +634,7 @@ class Translator:
             self.entry_point = self.labels["_start"]
         # иначе оставим PROGRAM_START_DEFAULT
 
-    # ---------- Сериализация бинарного файла --------------------------------
-    # Формат: u32 entry_point ; затем последовательность (u32 byte_addr ; u32 word).
+    #  Сериализация бинарного файла
     def to_binary(self) -> bytes:
         out = bytearray()
         out += struct.pack("<I", self.entry_point)
@@ -724,13 +654,7 @@ class Translator:
 
 
 def _check_imm(value: int, bits: int, op_name: str, line_no: int, *, signed: bool = True) -> int:
-    """Проверить, что immediate помещается в `bits` бит.
-
-    signed=True  -> диапазон [-2^(bits-1) .. 2^(bits-1)-1]  (обычные команды)
-    signed=False -> диапазон [0 .. 2^bits-1]                (LUI/ORI/ANDI:
-                    immediate трактуется как битовая маска, знак не важен).
-    Беззнаковое значение возвращается уже как знаковое представление тех
-    же бит (чтобы encode уложил его корректно).
+    """Проверить, что immediate помещается
     """
     if signed:
         lo = -(1 << (bits - 1))
@@ -747,7 +671,7 @@ def _check_imm(value: int, bits: int, op_name: str, line_no: int, *, signed: boo
             f"строка {line_no}: значение {value} не помещается "
             f"в {bits}-битный беззнаковый immediate инструкции {op_name}"
         )
-    # вернём то же битовое значение, но как знаковое (для encode)
+    # вернём то же битовое значение
     return to_signed(value, bits)
 
 
@@ -763,8 +687,6 @@ def _escape_char(ch: str) -> str:
 
 def _decode_escapes(s: str) -> str:
     """Заменить escape-последовательности на реальные символы.
-
-    Поддерживаются: \\n, \\t, \\\\, \\0, \\\" .
     """
     out: list[str] = []
     i = 0
@@ -792,9 +714,7 @@ def _decode_escapes(s: str) -> str:
     return "".join(out)
 
 
-# =============================================================================
-# Загрузка бинарного файла обратно в "образ памяти"
-# =============================================================================
+# Загрузка бинарного файла обратно
 def load_binary(data: bytes) -> tuple[int, dict[int, int]]:
     """Прочитать бинарный файл, вернуть (entry_point, memory_image)."""
     if len(data) < 4:
@@ -813,9 +733,8 @@ def load_binary(data: bytes) -> tuple[int, dict[int, int]]:
     return entry, memory
 
 
-# =============================================================================
+
 # CLI
-# =============================================================================
 def main(argv: list[str] | None = None) -> int:
     import argparse
 

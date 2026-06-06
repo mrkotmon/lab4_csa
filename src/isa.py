@@ -1,83 +1,42 @@
-"""ISA: определение системы команд процессора.
 
-Архитектура: RISC, фон-Неймана (общая память команд и данных).
-Машинное слово: 32 бита (знаковое), адресация памяти байтовая.
-Кодирование: фиксированная длина 32 бита (бинарный формат); каждое слово занимает 4 байта.
-
-Регистры:
-    - 8 целочисленных R0..R7 (R0 всегда = 0)
-    - 4 векторных V0..V3, каждый из 4 элементов по 32 бита
-    - PC, IR, FLAGS (Z, N), IE (interrupt enable), IN_HANDLER
-
-Форматы инструкций (32 бита):
-
-    R-тип (регистровая арифметика, 3 регистра):
-        [ opcode:8 | rd:4 | rs1:4 | rs2:4 | unused:12 ]
-        пример: ADD R1, R2, R3
-
-    I-тип (регистр + непосредственный operand):
-        [ opcode:8 | rd:4 | rs1:4 | imm:16 (знаковый) ]
-        пример: ADDI R1, R2, 100; LW R1, R2(8); BEQ R1, R2, label
-
-    J-тип (длинный переход):
-        [ opcode:8 | rd:4 | imm:20 (знаковый) ]
-        пример: JMP label; JAL R1, label
-
-    V-тип (векторные инструкции):
-        [ opcode:8 | vd:4 | vs1:4 | vs2:4 | unused:12 ]
-        Векторные load/store: [ opcode:8 | vd:4 | rs1:4 | imm:16 ]
-
-    S-тип (системные, без операндов):
-        [ opcode:8 | unused:24 ]
-
-ВНИМАНИЕ: На уровне ISA все целочисленные значения хранятся как 32-битные
-дополнительные коды; функции encode/decode заботятся о знаке.
-"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import IntEnum
 
-# ----------- размеры в битах -----------------------------------------------
+#  размеры в битах
 WORD_BITS = 32
 WORD_MASK = (1 << WORD_BITS) - 1
 WORD_MIN = -(1 << (WORD_BITS - 1))
 WORD_MAX = (1 << (WORD_BITS - 1)) - 1
 
 OPCODE_BITS = 8
-REG_BITS = 4  # 16 регистров адресуемо (используем 8 скалярных + 4 векторных)
+REG_BITS = 4  # 16 регистров
 IMM16_BITS = 16
 IMM20_BITS = 20
 
 
-# ----------- параметры памяти / процессора ---------------------------------
+#  параметры памяти / процессора
 WORD_BYTES = WORD_BITS // 8
 MEMORY_SIZE = 8192  # размер ОЗУ в байтах; память байтово-адресуемая
 VECTOR_LEN = 4  # длина векторного регистра в элементах
 NUM_GP_REGS = 8  # R0..R7
 NUM_VEC_REGS = 4  # V0..V3
 
-# Memory-mapped I/O — два последних выровненных 32-битных слова памяти.
-# Согласно варианту `mem` отображение портов сконфигурировано здесь.
+# Memory-mapped I/O
 IO_INPUT_ADDR = MEMORY_SIZE - 2 * WORD_BYTES  # 8184 — чтение символа из входа
 IO_OUTPUT_ADDR = MEMORY_SIZE - WORD_BYTES  # 8188 — запись символа в вывод
 
 # Адрес 0 — вектор прерывания (там лежит адрес обработчика).
-# При сборке транслятор записывает туда `JMP handler`, либо
-# программа сама делает `.org 0 / .word <addr>` — выберем второй путь:
-# слово по адресу 0 трактуется как НЕПОСРЕДСТВЕННЫЙ адрес обработчика.
+
 INTERRUPT_VECTOR_ADDR = 0
-PROGRAM_START_DEFAULT = WORD_BYTES  # адрес 4: первое слово программы
+PROGRAM_START_DEFAULT = WORD_BYTES  # адрес 4
 
 
 class InstrType(IntEnum):
     """Тип (формат) инструкции — кодируется в старших 3 битах опкода.
 
-    Это ключевое решение для hardwired control unit: чтобы определить
-    формат инструкции, достаточно прочитать 3 старших бита опкода
-    (`opcode >> 5`), а не искать опкод в таблице. В реальном железе это
-    соответствует трём проводам, идущим прямо на дешифратор формата.
     """
 
     R = 0b000  # регистр-регистр-регистр:      [op|rd|rs1|rs2|--]
@@ -99,15 +58,9 @@ def _op(instr_type: InstrType, index: int) -> int:
 
 class Opcode(IntEnum):
     """Опкоды инструкций.
-
-    Числовое значение опкода НЕ произвольно: старшие 3 бита задают тип
-    инструкции (см. InstrType), младшие 5 бит — порядковый номер операции
-    внутри типа. Благодаря этому декодер определяет формат инструкции
-    одной битовой операцией `opcode >> 5`, без поиска по таблицам —
-    это и есть «hardwired»-дешифрация.
     """
 
-    # --- R-тип (0b000_xxxxx): арифметика регистр-регистр ---
+    #  R-тип
     ADD = _op(InstrType.R, 0)  # 0x00
     SUB = _op(InstrType.R, 1)  # 0x01
     MUL = _op(InstrType.R, 2)  # 0x02
@@ -117,7 +70,7 @@ class Opcode(IntEnum):
     OR = _op(InstrType.R, 6)  # 0x06
     XOR = _op(InstrType.R, 7)  # 0x07
 
-    # --- I-тип (0b001_xxxxx): арифметика и память с immediate ---
+    #  I-тип
     ADDI = _op(InstrType.I, 0)  # 0x20
     SUBI = _op(InstrType.I, 1)  # 0x21
     MULI = _op(InstrType.I, 2)  # 0x22
@@ -134,25 +87,25 @@ class Opcode(IntEnum):
     BLE = _op(InstrType.I, 13)  # 0x2D
     BGE = _op(InstrType.I, 14)  # 0x2E
 
-    # --- J-тип (0b010_xxxxx): переходы ---
+    #  J-тип
     JMP = _op(InstrType.J, 0)  # 0x40
     JAL = _op(InstrType.J, 1)  # 0x41   jump-and-link: Rd <- PC; PC <- imm
     JR = _op(InstrType.J, 2)  # 0x42   jump register: PC <- Rd
 
-    # --- V-тип (0b011_xxxxx): векторные регистр-регистр ---
+    #  V-тип
     VADD = _op(InstrType.V, 0)  # 0x60   V[vd][i] <- V[vs1][i] + V[vs2][i]
     VSUB = _op(InstrType.V, 1)  # 0x61
     VMUL = _op(InstrType.V, 2)  # 0x62
     VDIV = _op(InstrType.V, 3)  # 0x63
     VCMP = _op(InstrType.V, 4)  # 0x64   V[vd][i] <- (V[vs1][i] == V[vs2][i])
-    VRED = _op(InstrType.V, 5)  # 0x65   Rd <- сумма всех элементов V[vs1]
+    VRED = _op(InstrType.V, 5)  # 0x65   Rd <- сумма  элементов V[vs1]
 
-    # --- M-тип (0b100_xxxxx): векторные load/store и broadcast ---
+    #  M-тип
     VLD = _op(InstrType.M, 0)  # 0x80   V[vd] <- MEM[Rs1 + imm .. +VLEN-1]
     VST = _op(InstrType.M, 1)  # 0x81   MEM[Rs1 + imm ..] <- V[vd]
     VBC = _op(InstrType.M, 2)  # 0x82   broadcast: V[vd][i] <- R[rs1]
 
-    # --- S-тип (0b101_xxxxx): системные без операндов ---
+    #  S-тип
     EI = _op(InstrType.S, 0)  # 0xA0   enable interrupts
     DI = _op(InstrType.S, 1)  # 0xA1   disable interrupts
     IRET = _op(InstrType.S, 2)  # 0xA2   возврат из обработчика прерывания
@@ -168,9 +121,7 @@ def opcode_type(op: int) -> InstrType:
     return InstrType((op >> 5) & 0b111)
 
 
-# Опкоды, относящиеся к векторным инструкциям, — для удобства/документации.
-# (Используются только для справки, в декодировании НЕ участвуют —
-#  декодер опирается на биты типа.)
+# Опкоды, относящиеся к векторным инструкциям
 VECTOR_OPCODES = {
     Opcode.VLD,
     Opcode.VST,
@@ -183,25 +134,21 @@ VECTOR_OPCODES = {
     Opcode.VBC,
 }
 
-# Группировки опкодов по типу.  Они вычисляются ИЗ битов опкода
-# (`opcode >> 5`), а не задаются вручную — то есть это просто удобные
-# срезы, согласованные с дешифратором по построению. Транслятор
-# использует их для проверки числа операндов.
+# Группировки опкодов по типу.
+
 R_TYPE_OPCODES = {op for op in Opcode if opcode_type(int(op)) == InstrType.R}
 I_TYPE_OPCODES = {op for op in Opcode if opcode_type(int(op)) == InstrType.I}
 J_TYPE_OPCODES = {op for op in Opcode if opcode_type(int(op)) == InstrType.J}
 S_TYPE_OPCODES = {op for op in Opcode if opcode_type(int(op)) == InstrType.S}
 
 
-# ----------- утилиты для знаковых / беззнаковых преобразований -------------
+# утилиты для знаковых / беззнаковых преобразований
 def to_unsigned(value: int, bits: int) -> int:
-    """Преобразовать знаковое целое в беззнаковое представление в `bits` битах."""
     mask = (1 << bits) - 1
     return value & mask
 
 
 def to_signed(value: int, bits: int) -> int:
-    """Интерпретировать `bits`-битное беззнаковое значение как знаковое."""
     sign_bit = 1 << (bits - 1)
     mask = (1 << bits) - 1
     value &= mask
@@ -211,15 +158,13 @@ def to_signed(value: int, bits: int) -> int:
 
 
 def clip_word(value: int) -> int:
-    """Привести значение к диапазону 32-битного знакового слова (с переполнением)."""
     value &= WORD_MASK
     return to_signed(value, WORD_BITS)
 
 
-# ----------- структура декодированной инструкции ---------------------------
+#  структура декодированной инструкции
 @dataclass(frozen=True)
 class Instruction:
-    """Декодированный вид одной инструкции (удобно для интерпретатора)."""
 
     opcode: Opcode
     rd: int = 0  # регистр-приёмник (или vd для векторных)
@@ -229,13 +174,9 @@ class Instruction:
     raw: int = 0  # исходное 32-битное слово (для отладки)
 
 
-# ----------- кодирование --------------------------------------------------
+#  кодирование
 def encode(op: Opcode, *, rd: int = 0, rs1: int = 0, rs2: int = 0, imm: int = 0) -> int:
     """Закодировать инструкцию в 32-битное слово.
-
-    Возвращает беззнаковое значение, которое нужно сохранить в память.
-    Формат выбирается по ТИПУ инструкции (старшие биты опкода), а не по
-    перечислению конкретных опкодов.
     """
     assert 0 <= rd < (1 << REG_BITS), f"rd  out of range: {rd}"
     assert 0 <= rs1 < (1 << REG_BITS), f"rs1 out of range: {rs1}"
@@ -245,7 +186,7 @@ def encode(op: Opcode, *, rd: int = 0, rs1: int = 0, rs2: int = 0, imm: int = 0)
     base = int(op) << 24
 
     if t in (InstrType.R, InstrType.V):
-        # три регистровых поля; VRED — частный случай (vs2 не используется)
+        # три регистровых поля;
         word = base | (rd << 20) | (rs1 << 16) | (rs2 << 12)
     elif t in (InstrType.I, InstrType.M):
         imm_u = to_unsigned(imm, IMM16_BITS)
@@ -263,8 +204,6 @@ def encode(op: Opcode, *, rd: int = 0, rs1: int = 0, rs2: int = 0, imm: int = 0)
 def decode(word: int) -> Instruction:
     """Декодировать 32-битное слово в Instruction.
 
-    Формат определяется ТИПОМ инструкции (`opcode >> 5`) — это и есть
-    hardwired-дешифрация: одна битовая операция вместо поиска по таблице.
     """
     word &= WORD_MASK
     op_val = (word >> 24) & 0xFF
@@ -291,9 +230,8 @@ def decode(word: int) -> Instruction:
     raise ValueError(f"decode: opcode {op} не имеет описанного формата")
 
 
-# ----------- удобные мнемонические строки для отладочного дампа -----------
+#  удобные мнемонические строки для отладочного дампа
 def mnemonic(instr: Instruction) -> str:
-    """Вернуть человекочитаемую запись инструкции."""
     op = instr.opcode
     t = opcode_type(int(op))
 

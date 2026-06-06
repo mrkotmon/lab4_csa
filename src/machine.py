@@ -1,37 +1,4 @@
-"""Модель процессора: RISC, фон-Неймана, hardwired CU, точность до такта.
 
-Жизненный цикл инструкции (5 стадий, исполняются последовательно):
-
-    1. FETCH    — IR <- MEM32[PC]; PC <- PC + 4 (байтовые адреса)
-    2. DECODE   — разобрать опкод и поля       (1 такт)
-    3. EXECUTE  — посчитать в АЛУ              (1 такт; для VLD/VST — внутри
-                                                MEMORY)
-    4. MEMORY   — чтение/запись памяти          (1 такт за каждое слово,
-                                                векторные load/store берут
-                                                VECTOR_LEN тактов = демонстрация
-                                                "продолжительной" операции)
-    5. WRITEBACK — записать результат в регистр (1 такт)
-
-Большинство инструкций не используют какие-то стадии (например, EI/DI не
-обращаются к памяти и не пишут регистр).  Чтобы это было отражено в журнале,
-мы всё равно «тратим» 1 такт на каждую активную стадию.
-
-Прерывания (`trap`):
-  - Прерывание считается внутренним: оно появляется, когда наступает такт,
-    указанный в расписании, и в порту IO_INPUT_ADDR появляется новое значение.
-  - Между инструкциями (после WRITEBACK) проверяем: разрешены ли прерывания,
-    есть ли запрос — если оба «да», то делаем переход на адрес из
-    INTERRUPT_VECTOR_ADDR.
-  - Реализация «реализма»: входное устройство имеет один 32-битный
-    регистр данных, без скрытой очереди. Пока непрочитанный символ занят,
-    следующий пришедший символ теряется с записью INPUT OVERRUN в журнал.
-
-Memory-mapped I/O:
-  - чтение слова по адресу IO_INPUT_ADDR забирает текущее значение
-    «входного порта» (т.е. символ, ожидающий на этом такте);
-  - запись слова по адресу IO_OUTPUT_ADDR отправляет код символа в буфер
-    вывода.
-"""
 
 from __future__ import annotations
 
@@ -60,9 +27,6 @@ from isa import (
 )
 
 
-# =============================================================================
-# Состояния FSM control unit (hardwired)
-# =============================================================================
 class Stage(Enum):
     FETCH = auto()
     DECODE = auto()
@@ -73,18 +37,9 @@ class Stage(Enum):
     HALTED = auto()
 
 
-# =============================================================================
-# Помощник: «расписание» входных символов  (tick, char)
-# =============================================================================
 @dataclass
 class InputSchedule:
-    """Расписание ввода: список (tick_to_fire, char).
-
-    После наступления указанного такта прерывание считается «запросом»
-    и символ помещается в порт ввода.  Когда обработчик прочитает порт,
-    запрос сбрасывается; если в это же время появится следующий символ,
-    его прерывание ждёт окончания текущего обработчика.
-    """
+    """Расписание ввода: список """
 
     schedule: list[tuple[int, str]]
     _idx: int = 0
@@ -103,16 +58,14 @@ class InputSchedule:
         return item
 
 
-# =============================================================================
-# DataPath (содержит регистры, память, АЛУ-операции)
-# =============================================================================
+# DataPath
 @dataclass
 class DataPath:
     """Тракт данных с единой байтово-адресуемой памятью фон Неймана."""
 
     memory: bytearray = field(default_factory=lambda: bytearray(MEMORY_SIZE))
 
-    # Скалярные регистры; R0 ВСЕГДА должен оставаться 0.
+    # Скалярные регистры
     regs: list[int] = field(default_factory=lambda: [0] * NUM_GP_REGS)
     # Векторные регистры: список из NUM_VEC_REGS списков длины VECTOR_LEN.
     vregs: list[list[int]] = field(
@@ -165,13 +118,11 @@ class DataPath:
         self.load_word(addr, value)
 
 
-# =============================================================================
 # Сам процессор
-# =============================================================================
 class Processor:
     """Симулирует процессор с точностью до такта."""
 
-    # Имена векторных операций для журнала.
+    # Имена векторных операций для журнала
     _VEC_OP_NAMES: ClassVar[dict[Opcode, str]] = {
         Opcode.VADD: "+",
         Opcode.VSUB: "-",
@@ -202,21 +153,21 @@ class Processor:
         # ограничители
         self.tick: int = 0
         self.max_ticks = max_ticks
-        # счётчики инструкций (полезно для сравнения скаляр vs вектор)
+        # счётчики инструкций
         self.instruction_count = 0
         # состояние FSM
         self.stage: Stage = Stage.FETCH
         self.cur: Instruction | None = None
-        # Входное устройство: однословный регистр данных и один запрос IRQ.
+        # Входное устройство
         self._irq_pending: bool = False
         self._input_active_char: str | None = None
         self.input_overrun_count: int = 0
         # журнал
         self.log_stream = log_stream
-        # счётчик активных стадий для VLD/VST (имитация многотактовой памяти)
+        # счётчик активных стадий для VLD/VST (имитация многотактовой Sпамяти)
         self._mem_remaining_words: int = 0
 
-    # ------------- журналирование --------------------------------------
+    #  журналирование
     def _log(self, msg: str) -> None:
         if self.log_stream is not None:
             mark = "*" if self.dp.in_handler else " "
@@ -229,18 +180,15 @@ class Processor:
         rs = " ".join(f"R{i}={self.dp.regs[i]}" for i in range(NUM_GP_REGS))
         return rs + f"  FLAGS={self.dp.flags} IE={int(self.dp.ie)} IH={int(self.dp.in_handler)}"
 
-    # ------------- обновление flags после ALU -----------------------------
+    #  обновление flags после ALU
     def _set_flags(self, value: int) -> None:
         z = 1 if value == 0 else 0
         n = 1 if value < 0 else 0
         self.dp.flags = z | (n << 1)
 
-    # ------------- запрос прерывания --------------------------------------
+    #  запрос прерывания
     def _check_input_event(self) -> None:
-        """Принять все события текущего такта в однословный аппаратный порт.
-
-        Порт не является очередью: если предыдущее значение ещё не считано,
-        вновь пришедший символ теряется, а журнал фиксирует переполнение.
+        """Принять все события текущего такта в однословный аппаратный порт
         """
         while self.input_schedule.has_pending(self.tick):
             _, ch = self.input_schedule.pop()
@@ -253,7 +201,7 @@ class Processor:
             self._irq_pending = True
             self._log(f"IRQ: появился символ '{_print_char(ch)}' (код {ord(ch)})")
 
-    # ------------- основной цикл ------------------------------------------
+    #  основной цикл
     def run(self) -> None:
         """Прокручиваем такты, пока не HLT или не закончится лимит."""
         while self.stage != Stage.HALTED and self.tick < self.max_ticks:
@@ -264,7 +212,7 @@ class Processor:
 
     def _tick_once(self) -> None:
         """Один такт."""
-        # Перед стадией: новые внешние события (поступление символа).
+        # Перед стадией: новые внешние события.
         self._check_input_event()
 
         if self.stage == Stage.FETCH:
@@ -280,12 +228,12 @@ class Processor:
         elif self.stage == Stage.CHECK_IRQ:
             self._stage_check_irq()
         else:
-            # HALTED  — ничего не делаем
+            # HALTED
             pass
 
         self.tick += 1
 
-    # ------------------- отдельные стадии -------------------------------
+    #  отдельные стадии
     def _stage_fetch(self) -> None:
         word = self.dp.read_mem(self.dp.pc)
         self.dp.ir = word
@@ -295,8 +243,7 @@ class Processor:
         self.stage = Stage.DECODE
 
     def _stage_decode(self) -> None:
-        # «Аппаратный» дешифратор уже отработал в _stage_fetch; здесь просто
-        # тратим такт, чтобы соответствовать tick-точности.
+        # «Аппаратный» дешифратор уже отработал в _stage_fetch
         assert self.cur is not None
         self._log(f"DECODE {mnemonic(self.cur)}")
         self.stage = Stage.EXECUTE
@@ -395,7 +342,7 @@ class Processor:
             dp.pc = instr.imm
             self._has_writeback = False
         elif op == Opcode.JAL:
-            self._alu_result = dp.pc  # PC уже указывает на следующую инструкцию
+            self._alu_result = dp.pc  # PC указывает на следующую инструкцию
             self._has_writeback = True
             dp.pc = instr.imm
         elif op == Opcode.JR:
@@ -563,11 +510,9 @@ class Processor:
                 f"по адресу {handler_addr} (saved_pc={dp.saved_pc})"
             )
             dp.pc = handler_addr
-            # Запрос сбрасывается только чтением порта; до этого порт занят.
-            # Новое событие в этот момент приведёт к INPUT OVERRUN, а не к очереди.
+            # Запрос сбрасывается только чтением порта;
             self.stage = Stage.FETCH
             return
-        # Никакого прерывания не случилось — стандартная пауза между инструкциями.
         if self._irq_pending:
             reason = []
             if not dp.ie:
@@ -587,8 +532,6 @@ class Processor:
             )
             self._input_active_char = None
             self._irq_pending = False
-            # Уже пришедшие события никогда не ожидали здесь: при занятом
-            # порте они были потеряны с INPUT OVERRUN.
 
 
 def _print_char(ch: str) -> str:
@@ -601,9 +544,7 @@ def _print_char(ch: str) -> str:
     return ch
 
 
-# =============================================================================
-# CLI: запустить симуляцию
-# =============================================================================
+# CLI
 def main(argv: list[str] | None = None) -> int:
     import argparse
     import sys
@@ -616,7 +557,7 @@ def main(argv: list[str] | None = None) -> int:
         "input",
         nargs="?",
         help="файл с расписанием ввода (JSON со списком "
-        "[[tick, char], ...]); если не указан — без ввода",
+        "[[tick, char], ...]); если не указан без ввода",
     )
     parser.add_argument("--log", help="куда писать журнал тактов", default=None)
     parser.add_argument("--max-ticks", type=int, default=200_000)
