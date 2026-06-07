@@ -422,24 +422,9 @@ python src/machine.py <binary> [<input.json>] [--log <log_path>] [--max-ticks N]
 - `--log` — путь для журнала тактов;
 - `--max-ticks` — лимит тактов (по умолчанию 200000).
 
-### Схема DataPath
+## DataPath
 
-```mermaid
-flowchart LR
-    PC[PC: byte address] --> MAR[Memory address]
-    RF[R0..R7] --> ALU[Scalar ALU]
-    VR["V0..V3 (4 x 32 bit)"] --> VALU[Vector ALU]
-    ALU --> RF
-    VALU --> VR
-    ALU --> FL[FLAGS Z, N]
-    MAR --> MEM["Single-port unified memory (8192 bytes)"]
-    MEM --> IR[IR]
-    MEM <--> MDR[MDR: load/store path]
-    MDR --> RF
-    RF --> MDR
-    IOIN["INPUT @ 0x1FF8"] --> MEM
-    MEM --> IOOUT["OUTPUT @ 0x1FFC"]
-```
+![DataPath](docs/schema.svg)
 
 Особенности тракта:
 
